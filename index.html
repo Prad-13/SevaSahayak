@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seva Sahayak</title>
+<meta name="description" content="College design prototype: check government scheme eligibility and get application-ready. Not an official app.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" id="skip" href="#main">Skip to main content</a>
+
+<header class="top" id="top">
+  <div class="top-row">
+    <h1 class="brand" id="brand">Seva Sahayak</h1>
+    <div class="lang" id="langs" role="group"></div>
+  </div>
+  <div class="tools" id="tools"></div>
+  <p class="disclaimer" id="disclaimer" role="note"></p>
+  <ol class="steps" id="steps"></ol>
+</header>
+
+<div class="banner" id="idle-banner" role="alert" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<main id="main" tabindex="-1"></main>
+
+<aside id="metrics" class="metrics" hidden></aside>
+
+<noscript><p class="noscript">This app needs JavaScript to run.</p></noscript>
+
+<script src="data/i18n.js"></script>
+<script src="data/documents.js"></script>
+<script src="data/schemes.js"></script>
+<script src="data/questions.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/mismatch.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
