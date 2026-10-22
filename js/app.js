@@ -11,7 +11,12 @@
   const STEP_KEYS = ["nav.start", "nav.questions", "nav.results", "nav.docs", "nav.names", "nav.summary"];
 
   /* Preferences that survive "Clear my details" (they hold no personal data). */
-  const ui = { size: 0 };
+  const ui = { size: 0, helper: false, helped: 0, metricsOn: false, voiceOn: false, voiceNotice: false };
+
+  /* Auto-wipe after inactivity. ?idle=<seconds> shortens it for demos and testing. */
+  const idleParam = Number(new URLSearchParams(location.search).get("idle"));
+  const IDLE_MS = (idleParam > 0 ? idleParam : 300) * 1000;
+  const WARN_MS = Math.min(30000, IDLE_MS / 2);
 
   function fresh() {
     return {
@@ -122,10 +127,26 @@
       const tools = $("tools");
       tools.append(
         h("button", { type: "button", id: "size-btn", class: "small", onclick: () => { ui.size = (ui.size + 1) % 3; render(false, "size-btn"); } }),
-        h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) })
+        h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) }),
+        h("button", { type: "button", id: "helper-btn", class: "small", onclick: () => { ui.helper = !ui.helper; render(false, "helper-btn"); } }),
+        h("button", { type: "button", id: "next-btn", class: "small primary", onclick: nextPerson }),
+        h("span", { id: "helper-count", class: "hint", role: "status" }),
+        h("button", { type: "button", id: "metrics-btn", class: "small", onclick: () => { ui.metricsOn = !ui.metricsOn; render(false, "metrics-btn"); } }),
+        h("button", { type: "button", id: "voice-btn", class: "small", onclick: toggleVoice })
       );
       chromeBuilt = true;
     }
+    $("helper-btn").textContent = t("helper.toggle");
+    $("helper-btn").setAttribute("aria-pressed", String(ui.helper));
+    $("next-btn").textContent = t("helper.next");
+    $("next-btn").hidden = !ui.helper;
+    $("helper-count").textContent = t("helper.count", { n: ui.helped });
+    $("helper-count").hidden = !ui.helper;
+    $("metrics-btn").textContent = t("metrics.toggle");
+    $("metrics-btn").setAttribute("aria-pressed", String(ui.metricsOn));
+    $("voice-btn").textContent = ui.voiceOn ? t("voice.off") : t("voice.toggle");
+    $("voice-btn").setAttribute("aria-pressed", String(ui.voiceOn));
+    $("voice-btn").hidden = !(SSVoice.recognitionSupported() || SSVoice.speechSupported());
     I.LANGS.forEach((l) => $("lang-" + l.code).setAttribute("aria-pressed", String(l.code === I.getLang())));
     $("size-btn").textContent = "A" + "+".repeat(ui.size + 1);
     $("size-btn").setAttribute("aria-label", t("size.label") + ". " + t("size." + ui.size));
@@ -154,6 +175,9 @@
     main.replaceChildren();
     const screens = { start: renderStart, question: renderQuestion, results: renderResults, docs: renderDocs, names: renderNames, summary: renderSummary };
     const heading = screens[s.screen](main);
+    if (ui.voiceNotice) main.prepend(voiceNoticeBox());
+    renderMetrics();
+    if (ui.voiceOn && s.screen === "question") speakQuestion();
     if (focusId && $(focusId)) $(focusId).focus({ preventScroll: true });
     else if (focusHeading && heading) {
       heading.setAttribute("tabindex", "-1");
@@ -163,9 +187,130 @@
   }
 
   function wipe(message) {
+    SSVoice.stop();
+    SSMetrics.reset();
     s = fresh();
+    ui.voiceNotice = false;
+    hideIdleBanner();
     render(true);
     if (message) showToast(message);
+  }
+
+  /* ---------- 8. helper mode ---------- */
+  function nextPerson() {
+    if (s.asked.length > 0) ui.helped++; // a number only, no data kept
+    wipe();
+  }
+
+  /* ---------- 9. inactivity wipe ---------- */
+  let warnTimer = null, wipeTimer = null, countTimer = null;
+
+  function hasData() {
+    return s.screen !== "start" || s.asked.length > 0 || Object.keys(s.docs).length > 0 || NAME_KEYS.some((k) => s.names[k]);
+  }
+
+  function hideIdleBanner() {
+    clearInterval(countTimer);
+    $("idle-banner").hidden = true;
+  }
+
+  function showIdleWarning() {
+    if (!hasData()) return;
+    let left = Math.round(WARN_MS / 1000);
+    const banner = $("idle-banner");
+    const msg = h("span", { text: t("idle.warn", { s: left }) });
+    banner.replaceChildren(msg, h("button", { type: "button", class: "primary", onclick: resetIdle }, t("idle.keep")));
+    banner.hidden = false;
+    clearInterval(countTimer);
+    countTimer = setInterval(() => { left = Math.max(0, left - 1); msg.textContent = t("idle.warn", { s: left }); }, 1000);
+  }
+
+  function resetIdle() {
+    hideIdleBanner();
+    clearTimeout(warnTimer);
+    clearTimeout(wipeTimer);
+    warnTimer = setTimeout(showIdleWarning, IDLE_MS - WARN_MS);
+    wipeTimer = setTimeout(() => { if (hasData()) wipe(t("idle.wiped")); else resetIdle(); }, IDLE_MS);
+  }
+
+  ["pointerdown", "keydown", "input", "touchstart"].forEach((ev) => document.addEventListener(ev, () => {
+    if (!$("idle-banner").hidden) return; // once warned, only the "Keep my details" button keeps them
+    resetIdle();
+  }, true));
+
+  /* ---------- 10. demo metrics ---------- */
+  function renderMetrics() {
+    const box = $("metrics");
+    box.hidden = !ui.metricsOn;
+    if (!ui.metricsOn) return;
+    const asked = s.asked.length;
+    const fixed = s.cands.length ? E.fixedFormLength(s.cands) : 0;
+    const ms = SSMetrics.resultMs();
+    const fixedAll = E.fixedFormLength(SS_SCHEMES);
+    const row = (k, v) => [h("dt", { text: k }), h("dd", { text: v })];
+    box.replaceChildren(
+      h("h2", { text: t("metrics.title") }),
+      h("dl", null,
+        row(t("metrics.questions"), String(asked)),
+        row(t("metrics.fixed"), s.cands.length ? fixed + " (" + t("metrics.fixedAll") + ": " + fixedAll + ")" : "—"),
+        row(t("metrics.saved"), s.cands.length ? String(fixed - asked) : "—"),
+        row(t("metrics.time"), ms === null ? t("metrics.na") : (ms / 1000).toFixed(1) + " s"),
+        row(t("metrics.size"), SSMetrics.ruleDataKB().toFixed(1) + " KB"),
+        row(t("metrics.net"), String(SSMetrics.networkRequests()))),
+      h("p", { class: "hint", text: t("metrics.note") }));
+  }
+
+  /* ---------- 11. voice (optional, off by default) ---------- */
+  function voiceNoticeBox() {
+    return h("section", { class: "notice", role: "alertdialog", "aria-labelledby": "vn-h" },
+      h("h3", { id: "vn-h", text: t("voice.toggle") }),
+      h("p", { text: t("voice.notice") }),
+      h("div", { class: "row" },
+        h("button", { type: "button", class: "primary", id: "vn-ok", onclick: enableVoice }, t("voice.enable")),
+        h("button", { type: "button", onclick: () => { ui.voiceNotice = false; render(false, "voice-btn"); } }, t("voice.cancel"))));
+  }
+
+  function toggleVoice() {
+    if (ui.voiceOn) { ui.voiceOn = false; SSVoice.stop(); render(false, "voice-btn"); return; }
+    ui.voiceNotice = true;
+    render(false, "vn-ok");
+  }
+
+  function enableVoice() {
+    ui.voiceOn = true;
+    ui.voiceNotice = false;
+    render(false, "voice-btn");
+    if (s.screen === "start") SSVoice.speak(t("start.intro"), I.speechLang());
+  }
+
+  function speakQuestion() {
+    const el = $("qtext");
+    if (el) SSVoice.speak(el.textContent, I.speechLang());
+  }
+
+  function listenForAnswer(attr) {
+    const status = $("voice-status");
+    status.textContent = t("voice.listening");
+    SSVoice.listen(I.speechLang(), (alts) => {
+      let value = null, heard = alts[0];
+      for (const a of alts) {
+        const v = SSVoice.parseAnswer(Q[attr], a);
+        if (v !== null) { value = v; heard = a; break; }
+      }
+      if (value === null) { status.textContent = t("voice.heard", { t: heard }) + " " + t("voice.unclear"); return; }
+      showToast(t("voice.heard", { t: heard }));
+      answer(attr, value);
+    }, () => { status.textContent = t("voice.error"); }, () => {
+      if (status.textContent === t("voice.listening")) status.textContent = "";
+    });
+  }
+
+  function voiceControls(attr) {
+    if (!ui.voiceOn) return null;
+    return h("div", { class: "row noprint" },
+      SSVoice.recognitionSupported() ? h("button", { type: "button", id: "mic-btn", onclick: () => listenForAnswer(attr) }, "🎤 " + t("voice.mic")) : null,
+      SSVoice.speechSupported() ? h("button", { type: "button", onclick: speakQuestion }, "🔊 " + t("voice.read")) : null,
+      h("p", { id: "voice-status", class: "hint", role: "status", "aria-live": "polite" }));
   }
 
   /* ---------- 1. start ---------- */
@@ -176,6 +321,11 @@
       h("button", { type: "button", class: "tile" + (tile.id === "all" ? " wide" : ""), onclick: () => startWith(tile) },
         h("span", { class: "icon", "aria-hidden": "true", text: tile.icon }),
         h("span", { text: I.pick(tile.label) })))));
+    if (SSVoice.speechSupported() || SSVoice.recognitionSupported()) {
+      main.append(h("div", { class: "row" },
+        h("button", { type: "button", id: "speak-btn", onclick: () => { if (ui.voiceOn) SSVoice.speak(t("start.intro"), I.speechLang()); else toggleVoice(); } },
+          "🎤 " + t("start.speak"))));
+    }
     main.append(h("section", { class: "notice", "aria-labelledby": "priv-h" },
       h("h3", { id: "priv-h", text: t("privacy.title") }),
       h("p", { text: t("privacy.body") })));
@@ -187,6 +337,7 @@
     s.cands = E.candidates(SS_SCHEMES, tile.tag);
     s.answers = {};
     s.asked = [];
+    SSMetrics.begin();
     go("question");
   }
 
@@ -229,6 +380,7 @@
         h("div", { class: "row" }, h("button", { type: "submit", class: "primary" }, t("q.next")), dontKnow));
       main.append(form);
     }
+    main.append(voiceControls(attr));
     main.append(h("p", { class: "hint", text: t("q.hint") }));
     main.append(h("div", { class: "row noprint" }, h("button", { type: "button", onclick: undoLast }, "← " + t("back"))));
     return heading;
@@ -244,6 +396,7 @@
     if (s.asked.length === 0) { wipe(); return; }
     const a = s.asked.pop();
     delete s.answers[a];
+    SSMetrics.unfinish();
     s.screen = "question";
     render(true);
   }
@@ -268,6 +421,7 @@
   }
 
   function renderResults(main) {
+    SSMetrics.end();
     const heading = h("h2", { text: t("results.title") });
     main.append(heading, h("p", { class: "hint", text: t("results.intro") }));
     const all = E.results(s.cands, s.answers);
@@ -433,4 +587,5 @@
 
   /* ---------- boot ---------- */
   render(false);
+  resetIdle();
 })();
