@@ -73,7 +73,7 @@ p { margin: 0 0 .75rem; }
 
 /* language: segmented control */
 .lang { display: inline-flex; padding: 3px; background: var(--brand-soft); border-radius: 999px; gap: 2px; }
-.lang button { min-height: 44px; min-width: 48px; padding: 0 .9rem; border: 0; border-radius: 999px; background: transparent; color: var(--brand); font-weight: 700; }
+.lang button { min-height: 48px; min-width: 48px; padding: 0 .9rem; border: 0; border-radius: 999px; background: transparent; color: var(--brand); font-weight: 700; }
 .lang button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
 .lang button:hover { background: rgba(30, 58, 138, .1); }
 .lang button[aria-pressed="true"]:hover { background: var(--brand); }
