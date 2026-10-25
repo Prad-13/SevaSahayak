@@ -416,7 +416,7 @@
     const sc = r.scheme;
     const lines = whyLines(sc, r.status);
     const card = h("article", { class: "card" },
-      h("div", { class: "card-head" }, SSIcons.icon(sc.id), h("h3", { text: I.pick(sc.name) })),
+      h("div", { class: "card-head" }, SSIcons.icon(sc.id, "scheme"), h("h3", { text: I.pick(sc.name) })),
       h("p", null, h("span", { class: "badge " + r.status },
         h("span", { "aria-hidden": "true", text: r.status === E.ELIGIBLE ? "✓" : r.status === E.NOT_ELIGIBLE ? "✗" : "?" }),
         t("status." + r.status))),
@@ -457,7 +457,10 @@
   /* ---------- 5. document checklist ---------- */
   function neededDocs() { return E.documentUnion(s.cands, s.answers); }
   function docById(id) { return SS_DOCS.find((d) => d.id === id); }
-  function schemeNames(ids) { return ids.map((id) => I.pick(SS_SCHEMES.find((x) => x.id === id).name)).join(", "); }
+  function schemeNames(ids) {
+    const names = ids.map((id) => I.pick(SS_SCHEMES.find((x) => x.id === id).name));
+    return names.length > 3 ? names.slice(0, 3).join(", ") + " " + t("docs.more", { n: names.length - 3 }) : names.join(", ");
+  }
 
   function renderDocs(main) {
     const heading = h("h2", { text: t("docs.title") });
@@ -472,7 +475,7 @@
       const state = s.docs[d.id];
       const set = (v) => { s.docs[d.id] = v; render(false, "doc-" + d.id + (v ? "-have" : "-miss")); };
       const card = h("article", { class: "card docrow" },
-        h("div", { class: "card-head" }, SSIcons.icon(d.id), h("h3", { text: I.pick(doc.name) })),
+        h("div", { class: "card-head" }, SSIcons.icon(d.id, "doc"), h("h3", { text: I.pick(doc.name) })),
         h("p", { class: "hint", text: t("docs.for", { list: schemeNames(d.schemes) }) }),
         h("div", { class: "row" },
           h("button", { type: "button", id: "doc-" + d.id + "-have", "aria-pressed": String(state === true), onclick: () => set(true) }, t("docs.have")),
@@ -539,7 +542,11 @@
   function summarySections() {
     const sections = [];
     sections.push({ title: t("summary.answers"), items: s.asked.map((a) => attrLabel(a) + ": " + answerText(a, s.answers[a])) });
-    sections.push({ title: t("summary.matched"), items: E.results(s.cands, s.answers).map((r) => I.pick(r.scheme.name) + " – " + t("status." + r.status)) });
+    const res = E.results(s.cands, s.answers);
+    const active = res.filter((r) => r.status !== E.NOT_ELIGIBLE);
+    const items = active.map((r) => I.pick(r.scheme.name) + " – " + t("status." + r.status));
+    if (res.length > active.length) items.push(t("summary.notEligibleCount", { n: res.length - active.length }));
+    sections.push({ title: t("summary.matched"), items: items });
     const docs = neededDocs().map((d) => {
       const st = s.docs[d.id];
       return I.pick(docById(d.id).name) + " – " + (st === true ? t("summary.have") : st === false ? t("summary.missing") : t("summary.notChecked"));

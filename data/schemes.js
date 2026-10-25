@@ -1,112 +1,305 @@
 /*
- * Scheme rules. ALL rules below are demo-simplified, verify against official guidelines.
- * Real criteria, amounts and exclusions vary by state and change over time.
+ * SAMPLE DATABASE: 50 national schemes.
+ *
+ * ALL rules below are demo-simplified, verify against official guidelines.
+ * They were drafted from general knowledge, NOT checked line by line against the official scheme pages, and the real
+ * criteria and amounts change with time and vary by state. Nothing here is official advice. Every scheme is
+ * therefore listed as UNVERIFIED in SCHEMES_SAMPLE.csv until a team member checks it.
+ * No amounts, deadlines, helplines or scheme-specific URLs are included on purpose.
  *
  * Condition shapes:
  *   { attr, op: "eq"|"gte"|"lte", value }
  *   { op: "or", conds: [ ...conditions ] }   (true if any sub-condition is true)
  * required: all must be true. exclusions: none may be true.
+ * household_income_lakh is the household's yearly income in lakh rupees, rounded UP to a whole lakh.
  */
-var SS_SCHEMES = [
-  {
-    id: "pm_kisan",
-    name: { en: "PM-KISAN", te: "పీఎం-కిసాన్", hi: "पीएम-किसान" },
-    benefit: {
-      en: "Income support for farmer families who hold farmland.",
-      te: "వ్యవసాయ భూమి ఉన్న రైతు కుటుంబాలకు ఆదాయ సహాయం.",
-      hi: "कृषि भूमि वाले किसान परिवारों को आय सहायता।"
-    },
-    tags: ["farming"],
-    official_note: "demo-simplified, verify against official guidelines",
-    required: [
-      // demo-simplified, verify against official guidelines
-      { attr: "farmer_with_land", op: "eq", value: true }
-    ],
-    exclusions: [
-      // demo-simplified, verify against official guidelines
-      { attr: "income_tax_payer", op: "eq", value: true },
-      { attr: "govt_service_or_pensioner", op: "eq", value: true }
-    ],
-    documents: ["aadhaar", "bank_passbook", "land_record"]
-  },
-  {
-    id: "ignwps",
-    name: { en: "Indira Gandhi National Widow Pension Scheme", te: "ఇందిరా గాంధీ జాతీయ వితంతు పింఛను పథకం", hi: "इंदिरा गांधी राष्ट्रीय विधवा पेंशन योजना" },
-    benefit: {
-      en: "Monthly pension for widows from poor households.",
-      te: "పేద కుటుంబాల వితంతువులకు నెలవారీ పింఛను.",
-      hi: "गरीब परिवारों की विधवाओं के लिए मासिक पेंशन।"
-    },
-    tags: ["spouse"],
-    official_note: "demo-simplified, verify against official guidelines",
-    required: [
-      // demo-simplified, verify against official guidelines
-      { attr: "gender", op: "eq", value: "female" },
-      { attr: "widowed", op: "eq", value: true },
-      { attr: "age", op: "gte", value: 40 },
-      { attr: "age", op: "lte", value: 79 },
-      { attr: "bpl", op: "eq", value: true }
-    ],
-    exclusions: [],
-    documents: ["aadhaar", "age_proof", "bpl_proof", "spouse_death_certificate", "bank_passbook"]
-  },
-  {
-    id: "ignoaps",
-    name: { en: "Indira Gandhi National Old Age Pension Scheme", te: "ఇందిరా గాంధీ జాతీయ వృద్ధాప్య పింఛను పథకం", hi: "इंदिरा गांधी राष्ट्रीय वृद्धावस्था पेंशन योजना" },
-    benefit: {
-      en: "Monthly pension for older adults from poor households.",
-      te: "పేద కుటుంబాల వృద్ధులకు నెలవారీ పింఛను.",
-      hi: "गरीब परिवारों के बुज़ुर्गों के लिए मासिक पेंशन।"
-    },
-    tags: ["old_age"],
-    official_note: "demo-simplified, verify against official guidelines",
-    required: [
-      // demo-simplified, verify against official guidelines
-      { attr: "age", op: "gte", value: 60 },
-      { attr: "bpl", op: "eq", value: true }
-    ],
-    exclusions: [],
-    documents: ["aadhaar", "age_proof", "bpl_proof", "bank_passbook"]
-  },
-  {
-    id: "igndps",
-    name: { en: "Indira Gandhi National Disability Pension Scheme", te: "ఇందిరా గాంధీ జాతీయ వికలాంగ పింఛను పథకం", hi: "इंदिरा गांधी राष्ट्रीय दिव्यांगता पेंशन योजना" },
-    benefit: {
-      en: "Monthly pension for persons with severe disability from poor households.",
-      te: "పేద కుటుంబాల్లో తీవ్ర వైకల్యం ఉన్నవారికి నెలవారీ పింఛను.",
-      hi: "गरीब परिवारों के गंभीर दिव्यांग व्यक्तियों के लिए मासिक पेंशन।"
-    },
-    tags: ["disability"],
-    official_note: "demo-simplified, verify against official guidelines",
-    required: [
-      // demo-simplified, verify against official guidelines
-      { attr: "disability_80_plus", op: "eq", value: true },
-      { attr: "age", op: "gte", value: 18 },
-      { attr: "age", op: "lte", value: 79 },
-      { attr: "bpl", op: "eq", value: true }
-    ],
-    exclusions: [],
-    documents: ["aadhaar", "disability_certificate", "bpl_proof", "bank_passbook"]
-  },
-  {
-    id: "pmjay",
-    name: { en: "Ayushman Bharat PM-JAY", te: "ఆయుష్మాన్ భారత్ పీఎం-జేఏవై", hi: "आयुष्मान भारत पीएम-जेएवाई" },
-    benefit: {
-      en: "Health cover for hospital treatment for eligible families.",
-      te: "అర్హత ఉన్న కుటుంబాలకు ఆసుపత్రి చికిత్సకు ఆరోగ్య బీమా.",
-      hi: "पात्र परिवारों के लिए अस्पताल में इलाज का स्वास्थ्य कवर।"
-    },
-    tags: ["health", "old_age"],
-    official_note: "demo-simplified, verify against official guidelines",
-    required: [
-      // demo-simplified, verify against official guidelines
-      { op: "or", conds: [
-        { attr: "age", op: "gte", value: 70 },
-        { attr: "pmjay_listed", op: "eq", value: true }
-      ] }
-    ],
-    exclusions: [],
-    documents: ["aadhaar", "ration_card"]
+var SS_SCHEMES = (function () {
+  "use strict";
+  var NOTE = "demo-simplified, verify against official guidelines";
+  function T(en, te, hi) { return { en: en, te: te, hi: hi }; }
+  function eq(attr, value) { return { attr: attr, op: "eq", value: value }; }
+  function gte(attr, value) { return { attr: attr, op: "gte", value: value }; }
+  function lte(attr, value) { return { attr: attr, op: "lte", value: value }; }
+  function or() { return { op: "or", conds: [].slice.call(arguments) }; }
+  function S(id, tags, name, benefit, required, exclusions, documents) {
+    return { id: id, name: name, benefit: benefit, tags: tags, official_note: NOTE, required: required, exclusions: exclusions, documents: documents };
   }
-];
+
+  return [
+    /* ---- core five (original demo set) ---- */
+    S("pm_kisan", ["farming"],
+      T("PM-KISAN", "పీఎం-కిసాన్", "पीएम-किसान"),
+      T("Income support for farmer families who hold farmland.", "వ్యవసాయ భూమి ఉన్న రైతు కుటుంబాలకు ఆదాయ సహాయం.", "कृषि भूमि वाले किसान परिवारों को आय सहायता।"),
+      [eq("farmer_with_land", true)],
+      [eq("income_tax_payer", true), eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("ignwps", ["spouse"],
+      T("Indira Gandhi National Widow Pension Scheme", "ఇందిరా గాంధీ జాతీయ వితంతు పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय विधवा पेंशन योजना"),
+      T("Monthly pension for widows from poor households.", "పేద కుటుంబాల వితంతువులకు నెలవారీ పింఛను.", "गरीब परिवारों की विधवाओं के लिए मासिक पेंशन।"),
+      [eq("gender", "female"), eq("widowed", true), gte("age", 40), lte("age", 79), eq("bpl", true)],
+      [],
+      ["aadhaar", "age_proof", "bpl_proof", "spouse_death_certificate", "bank_passbook"]),
+    S("ignoaps", ["old_age"],
+      T("Indira Gandhi National Old Age Pension Scheme", "ఇందిరా గాంధీ జాతీయ వృద్ధాప్య పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय वृद्धावस्था पेंशन योजना"),
+      T("Monthly pension for older adults from poor households.", "పేద కుటుంబాల వృద్ధులకు నెలవారీ పింఛను.", "गरीब परिवारों के बुज़ुर्गों के लिए मासिक पेंशन।"),
+      [gte("age", 60), eq("bpl", true)],
+      [],
+      ["aadhaar", "age_proof", "bpl_proof", "bank_passbook"]),
+    S("igndps", ["disability"],
+      T("Indira Gandhi National Disability Pension Scheme", "ఇందిరా గాంధీ జాతీయ వికలాంగ పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय दिव्यांगता पेंशन योजना"),
+      T("Monthly pension for persons with severe disability from poor households.", "పేద కుటుంబాల్లో తీవ్ర వైకల్యం ఉన్నవారికి నెలవారీ పింఛను.", "गरीब परिवारों के गंभीर दिव्यांग व्यक्तियों के लिए मासिक पेंशन।"),
+      [eq("disability_80_plus", true), gte("age", 18), lte("age", 79), eq("bpl", true)],
+      [],
+      ["aadhaar", "disability_certificate", "bpl_proof", "bank_passbook"]),
+    S("pmjay", ["health", "old_age"],
+      T("Ayushman Bharat PM-JAY", "ఆయుష్మాన్ భారత్ పీఎం-జేఏవై", "आयुष्मान भारत पीएम-जेएवाई"),
+      T("Health cover for hospital treatment for eligible families.", "అర్హత ఉన్న కుటుంబాలకు ఆసుపత్రి చికిత్సకు ఆరోగ్య బీమా.", "पात्र परिवारों के लिए अस्पताल में इलाज का स्वास्थ्य कवर।"),
+      [or(gte("age", 70), eq("pmjay_listed", true))],
+      [],
+      ["aadhaar", "ration_card"]),
+
+    /* ---- family and farming ---- */
+    S("nfbs", ["spouse"],
+      T("National Family Benefit Scheme", "జాతీయ కుటుంబ ప్రయోజన పథకం", "राष्ट्रीय परिवार लाभ योजना"),
+      T("One-time help to a poor family when the main earning member dies.", "ప్రధాన సంపాదనాపరుడు మరణించినప్పుడు పేద కుటుంబానికి ఒకసారి ఆర్థిక సహాయం.", "मुख्य कमाने वाले सदस्य की मृत्यु पर गरीब परिवार को एकमुश्त सहायता।"),
+      [eq("breadwinner_died", true), eq("bpl", true)], [],
+      ["aadhaar", "death_certificate_family", "bpl_proof", "bank_passbook"]),
+    S("pmkmy", ["farming", "old_age"],
+      T("PM Kisan Maan-Dhan Yojana (farmer pension)", "పీఎం కిసాన్ మాన్-ధన్ యోజన (రైతు పింఛను)", "पीएम किसान मान-धन योजना (किसान पेंशन)"),
+      T("Pension in old age for small farmers who join while young.", "చిన్న రైతులు చిన్న వయస్సులో చేరితే వృద్ధాప్యంలో పింఛను.", "छोटे किसानों को कम उम्र में जुड़ने पर बुढ़ापे में पेंशन।"),
+      [eq("farmer_with_land", true), gte("age", 18), lte("age", 40)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("pmfby", ["farming"],
+      T("PM Fasal Bima Yojana (crop insurance)", "పీఎం ఫసల్ బీమా యోజన (పంట బీమా)", "पीएम फसल बीमा योजना (फसल बीमा)"),
+      T("Insurance cover against crop loss from natural causes.", "ప్రకృతి కారణాల వల్ల పంట నష్టానికి బీమా రక్షణ.", "प्राकृतिक कारणों से फसल नुकसान पर बीमा सुरक्षा।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("kcc", ["farming", "money"],
+      T("Kisan Credit Card", "కిసాన్ క్రెడిట్ కార్డు", "किसान क्रेडिट कार्ड"),
+      T("Easy short-term farm credit for farmers.", "రైతులకు సులభమైన స్వల్పకాలిక వ్యవసాయ రుణం.", "किसानों के लिए आसान अल्पकालिक कृषि ऋण।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record", "bank_passbook"]),
+    S("shc", ["farming"],
+      T("Soil Health Card Scheme", "మృత్తిక ఆరోగ్య కార్డు పథకం", "मृदा स्वास्थ्य कार्ड योजना"),
+      T("Soil test report with advice on the right fertiliser for your land.", "మీ భూమికి సరైన ఎరువులపై సలహాతో మట్టి పరీక్ష నివేదిక.", "आपकी ज़मीन के लिए सही खाद की सलाह के साथ मिट्टी जाँच रिपोर्ट।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record"]),
+    S("pmkusum", ["farming"],
+      T("PM-KUSUM (solar pumps for farmers)", "పీఎం-కుసుమ్ (రైతులకు సోలార్ పంపులు)", "पीएम-कुसुम (किसानों के लिए सोलर पंप)"),
+      T("Support to install solar pumps on farmland.", "వ్యవసాయ భూమిలో సోలార్ పంపులు ఏర్పాటుకు సహాయం.", "खेत में सोलर पंप लगाने में सहायता।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record", "bank_passbook"]),
+
+    /* ---- housing and home ---- */
+    S("mgnrega", ["work"],
+      T("MGNREGA (rural work guarantee)", "ఉపాధి హామీ పథకం (ఎంజీఎన్‌ఆర్‌ఈజీఏ)", "मनरेगा (ग्रामीण रोज़गार गारंटी)"),
+      T("Paid unskilled manual work for rural households that ask for it.", "అడిగిన గ్రామీణ కుటుంబాలకు జీతంతో కూడిన నైపుణ్యం అవసరం లేని పని.", "माँग करने वाले ग्रामीण परिवारों को मज़दूरी के साथ अकुशल कार्य।"),
+      [eq("rural", true), gte("age", 18)], [],
+      ["aadhaar", "address_proof", "bank_passbook", "job_card"]),
+    S("pmay_g", ["housing"],
+      T("PM Awas Yojana - Gramin (rural housing)", "పీఎం ఆవాస్ యోజన - గ్రామీణ్ (గ్రామీణ గృహాలు)", "पीएम आवास योजना - ग्रामीण"),
+      T("Help to build a pucca house for rural families without one.", "పక్కా ఇల్లు లేని గ్రామీణ కుటుంబాలకు ఇల్లు కట్టుకోవడానికి సహాయం.", "पक्का मकान न रखने वाले ग्रामीण परिवारों को घर बनाने में सहायता।"),
+      [eq("rural", true), eq("owns_pucca_house", false), eq("bpl", true)], [],
+      ["aadhaar", "bank_passbook", "bpl_proof", "address_proof"]),
+    S("pmay_u", ["housing"],
+      T("PM Awas Yojana - Urban (city housing)", "పీఎం ఆవాస్ యోజన - అర్బన్ (పట్టణ గృహాలు)", "पीएम आवास योजना - शहरी"),
+      T("Support to buy or build a first home for urban families without a pucca house.", "పక్కా ఇల్లు లేని పట్టణ కుటుంబాలకు మొదటి ఇల్లు కొనడానికి లేదా కట్టడానికి సహాయం.", "पक्का मकान न रखने वाले शहरी परिवारों को पहला घर खरीदने या बनाने में सहायता।"),
+      [eq("rural", false), eq("owns_pucca_house", false), lte("household_income_lakh", 18)], [],
+      ["aadhaar", "income_certificate", "address_proof", "bank_passbook"]),
+    S("surya_ghar", ["housing"],
+      T("PM Surya Ghar (rooftop solar)", "పీఎం సూర్య ఘర్ (ఇంటిపై సోలార్)", "पीएम सूर्य घर (छत पर सोलर)"),
+      T("Support to put solar panels on the roof of your own house and cut electricity bills.", "మీ సొంత ఇంటి పైకప్పుపై సోలార్ ప్యానెల్స్ పెట్టుకుని విద్యుత్ బిల్లు తగ్గించుకోవడానికి సహాయం.", "अपने घर की छत पर सोलर पैनल लगाकर बिजली बिल घटाने में सहायता।"),
+      [eq("owns_pucca_house", true)], [],
+      ["aadhaar", "electricity_bill", "property_proof", "bank_passbook"]),
+    S("sbmg", ["housing", "health"],
+      T("Swachh Bharat Mission - Gramin (household toilet)", "స్వచ్ఛ భారత్ మిషన్ - గ్రామీణ్ (ఇంటి మరుగుదొడ్డి)", "स्वच्छ भारत मिशन - ग्रामीण (घरेलू शौचालय)"),
+      T("Support to build a toilet at home for rural households without one.", "మరుగుదొడ్డి లేని గ్రామీణ కుటుంబాలకు ఇంట్లో నిర్మించుకోవడానికి సహాయం.", "शौचालय न रखने वाले ग्रामीण परिवारों को घर में शौचालय बनाने में सहायता।"),
+      [eq("rural", true), eq("has_toilet", false)], [],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+
+    /* ---- women, money and insurance ---- */
+    S("ujjwala", ["women"],
+      T("PM Ujjwala Yojana (LPG connection)", "పీఎం ఉజ్జ్వల యోజన (ఎల్‌పీజీ కనెక్షన్)", "पीएम उज्ज्वला योजना (एलपीजी कनेक्शन)"),
+      T("Support to get a cooking gas connection for women from poor households.", "పేద కుటుంబాల మహిళలకు వంట గ్యాస్ కనెక్షన్ పొందడానికి సహాయం.", "गरीब परिवारों की महिलाओं को रसोई गैस कनेक्शन दिलाने में सहायता।"),
+      [eq("gender", "female"), gte("age", 18), eq("bpl", true), eq("has_lpg", false)], [],
+      ["aadhaar", "bpl_proof", "bank_passbook", "address_proof", "ration_card"]),
+    S("pmjdy", ["money"],
+      T("PM Jan Dhan Yojana (bank account)", "పీఎం జన్ ధన్ యోజన (బ్యాంకు ఖాతా)", "पीएम जन धन योजना (बैंक खाता)"),
+      T("A basic bank account for people who do not have one.", "ఖాతా లేనివారికి ప్రాథమిక బ్యాంకు ఖాతా.", "जिनका खाता नहीं है उनके लिए बुनियादी बैंक खाता।"),
+      [eq("has_bank_account", false), gte("age", 10)], [],
+      ["aadhaar", "address_proof"]),
+    S("pmjjby", ["money"],
+      T("PM Jeevan Jyoti Bima Yojana (life insurance)", "పీఎం జీవన్ జ్యోతి బీమా యోజన (జీవిత బీమా)", "पीएम जीवन ज्योति बीमा योजना (जीवन बीमा)"),
+      T("Low-cost life insurance cover renewed every year.", "ప్రతి సంవత్సరం పునరుద్ధరించే తక్కువ ఖర్చుతో జీవిత బీమా.", "हर साल नवीनीकृत होने वाला कम लागत का जीवन बीमा।"),
+      [gte("age", 18), lte("age", 50), eq("has_bank_account", true)], [],
+      ["aadhaar", "bank_passbook"]),
+    S("pmsby", ["money"],
+      T("PM Suraksha Bima Yojana (accident insurance)", "పీఎం సురక్ష బీమా యోజన (ప్రమాద బీమా)", "पीएम सुरक्षा बीमा योजना (दुर्घटना बीमा)"),
+      T("Low-cost accident insurance cover renewed every year.", "ప్రతి సంవత్సరం పునరుద్ధరించే తక్కువ ఖర్చుతో ప్రమాద బీమా.", "हर साल नवीनीकृत होने वाला कम लागत का दुर्घटना बीमा।"),
+      [gte("age", 18), lte("age", 70), eq("has_bank_account", true)], [],
+      ["aadhaar", "bank_passbook"]),
+    S("apy", ["money", "old_age"],
+      T("Atal Pension Yojana", "అటల్ పెన్షన్ యోజన", "अटल पेंशन योजना"),
+      T("Regular pension after 60 for people who save a small amount every month.", "ప్రతి నెల కొద్దిగా పొదుపు చేసినవారికి 60 ఏళ్ల తర్వాత క్రమం తప్పని పింఛను.", "हर महीने थोड़ी बचत करने वालों को 60 साल के बाद नियमित पेंशन।"),
+      [gte("age", 18), lte("age", 40), eq("has_bank_account", true)],
+      [eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("ssy", ["women", "money"],
+      T("Sukanya Samriddhi Yojana (girl child savings)", "సుకన్య సమృద్ధి యోజన (ఆడపిల్లల పొదుపు)", "सुकन्या समृद्धि योजना (बेटी की बचत)"),
+      T("A savings account for a girl child's future education and marriage.", "ఆడపిల్ల భవిష్యత్ చదువు, వివాహం కోసం పొదుపు ఖాతా.", "बेटी की भविष्य की पढ़ाई और शादी के लिए बचत खाता।"),
+      [eq("girl_child_under_10", true)], [],
+      ["aadhaar", "child_birth_certificate", "address_proof"]),
+    S("pmmvy", ["women", "health"],
+      T("PM Matru Vandana Yojana (maternity support)", "పీఎం మాతృ వందన యోజన (ప్రసూతి సహాయం)", "पीएम मातृ वंदना योजना (मातृत्व सहायता)"),
+      T("Cash support for pregnant and nursing mothers.", "గర్భిణులు, పాలిచ్చే తల్లులకు నగదు సహాయం.", "गर्भवती और स्तनपान कराने वाली माताओं को नकद सहायता।"),
+      [eq("pregnant_or_new_mother", true), gte("age", 19)],
+      [eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "mch_card", "bank_passbook"]),
+    S("jsy", ["women", "health"],
+      T("Janani Suraksha Yojana (safe delivery)", "జననీ సురక్ష యోజన (సురక్షిత ప్రసవం)", "जननी सुरक्षा योजना (सुरक्षित प्रसव)"),
+      T("Support for delivering at a government or accredited health facility.", "ప్రభుత్వ లేదా గుర్తింపు పొందిన ఆరోగ్య కేంద్రంలో ప్రసవానికి సహాయం.", "सरकारी या मान्यता प्राप्त स्वास्थ्य केंद्र में प्रसव के लिए सहायता।"),
+      [eq("pregnant_or_new_mother", true), eq("bpl", true)], [],
+      ["aadhaar", "mch_card", "bpl_proof", "bank_passbook"]),
+    S("nfsa", ["money"],
+      T("Subsidised ration (National Food Security Act)", "రాయితీ రేషన్ (జాతీయ ఆహార భద్రతా చట్టం)", "सब्सिडी वाला राशन (राष्ट्रीय खाद्य सुरक्षा अधिनियम)"),
+      T("Subsidised or free foodgrain every month for eligible households.", "అర్హత ఉన్న కుటుంబాలకు ప్రతి నెల రాయితీ లేదా ఉచిత ధాన్యం.", "पात्र परिवारों को हर महीने सब्सिडी वाला या मुफ़्त अनाज।"),
+      [eq("bpl", true)], [],
+      ["aadhaar", "ration_card", "address_proof", "income_certificate"]),
+
+    /* ---- work, skills and business ---- */
+    S("pmsym", ["work", "old_age"],
+      T("PM Shram Yogi Maan-Dhan (worker pension)", "పీఎం శ్రమ యోగి మాన్-ధన్ (కార్మికుల పింఛను)", "पीएम श्रम योगी मान-धन (श्रमिक पेंशन)"),
+      T("Old-age pension for unorganised workers who join while young.", "చిన్న వయస్సులో చేరే అసంఘటిత కార్మికులకు వృద్ధాప్య పింఛను.", "कम उम्र में जुड़ने वाले असंगठित श्रमिकों को वृद्धावस्था पेंशन।"),
+      [eq("informal_worker", true), gte("age", 18), lte("age", 40)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("eshram", ["work"],
+      T("e-Shram (unorganised worker registration)", "ఈ-శ్రమ్ (అసంఘటిత కార్మికుల నమోదు)", "ई-श्रम (असंगठित श्रमिक पंजीकरण)"),
+      T("Registration for unorganised workers that opens access to welfare benefits.", "అసంఘటిత కార్మికులకు సంక్షేమ ప్రయోజనాలు అందేలా చేసే నమోదు.", "असंगठित श्रमिकों के लिए पंजीकरण जो कल्याण लाभों तक पहुँच देता है।"),
+      [eq("informal_worker", true), gte("age", 16), lte("age", 59)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("svanidhi", ["work", "money"],
+      T("PM SVANidhi (street vendor loan)", "పీఎం స్వనిధి (వీధి వ్యాపారుల రుణం)", "पीएम स्वनिधि (फेरीवाला ऋण)"),
+      T("Small working-capital loan for street vendors.", "వీధి వ్యాపారులకు చిన్న వర్కింగ్ క్యాపిటల్ రుణం.", "फेरीवालों के लिए छोटा कार्यशील पूँजी ऋण।"),
+      [eq("street_vendor", true)], [],
+      ["aadhaar", "vendor_proof", "bank_passbook"]),
+    S("mudra", ["work", "money"],
+      T("PM Mudra Yojana (small business loan)", "పీఎం ముద్ర యోజన (చిన్న వ్యాపార రుణం)", "पीएम मुद्रा योजना (छोटा व्यवसाय ऋण)"),
+      T("Loans for small businesses without needing collateral.", "హామీ అవసరం లేకుండా చిన్న వ్యాపారాలకు రుణాలు.", "बिना गारंटी के छोटे व्यवसायों के लिए ऋण।"),
+      [eq("own_business", true), gte("age", 18)], [],
+      ["aadhaar", "address_proof", "business_plan", "bank_passbook"]),
+    S("standup", ["work", "women"],
+      T("Stand-Up India (loan for SC/ST or women entrepreneurs)", "స్టాండ్-అప్ ఇండియా (ఎస్‌సీ/ఎస్‌టీ లేదా మహిళా వ్యాపారవేత్తలకు రుణం)", "स्टैंड-अप इंडिया (एससी/एसटी या महिला उद्यमियों के लिए ऋण)"),
+      T("Bank loans to start a new business for SC/ST or women entrepreneurs.", "ఎస్‌సీ/ఎస్‌టీ లేదా మహిళా వ్యాపారవేత్తలకు కొత్త వ్యాపారం ప్రారంభించడానికి బ్యాంకు రుణాలు.", "एससी/एसटी या महिला उद्यमियों को नया व्यवसाय शुरू करने के लिए बैंक ऋण।"),
+      [eq("own_business", true), gte("age", 18), or(eq("sc_st", true), eq("gender", "female"))], [],
+      ["aadhaar", "caste_certificate", "business_plan", "address_proof", "bank_passbook"]),
+    S("pmegp", ["work"],
+      T("PMEGP (new enterprise subsidy)", "పీఎంఈజీపీ (కొత్త సంస్థకు సబ్సిడీ)", "पीएमईजीपी (नई इकाई के लिए सब्सिडी)"),
+      T("Subsidy-linked bank loan to set up a new small enterprise.", "కొత్త చిన్న సంస్థ ఏర్పాటుకు సబ్సిడీతో కూడిన బ్యాంకు రుణం.", "नई छोटी इकाई शुरू करने के लिए सब्सिडी वाला बैंक ऋण।"),
+      [eq("own_business", true), gte("age", 18)], [],
+      ["aadhaar", "business_plan", "address_proof", "bank_passbook"]),
+    S("vishwakarma", ["work"],
+      T("PM Vishwakarma (traditional artisans)", "పీఎం విశ్వకర్మ (సంప్రదాయ కళాకారులు)", "पीएम विश्वकर्मा (पारंपरिक कारीगर)"),
+      T("Skill training, toolkit support and low-cost credit for traditional artisans.", "సంప్రదాయ కళాకారులకు నైపుణ్య శిక్షణ, పనిముట్ల సహాయం, తక్కువ వడ్డీ రుణం.", "पारंपरिक कारीगरों के लिए कौशल प्रशिक्षण, औज़ार सहायता और सस्ता ऋण।"),
+      [eq("artisan", true), gte("age", 18)],
+      [eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+    S("pmkvy", ["work", "education"],
+      T("PM Kaushal Vikas Yojana (skill training)", "పీఎం కౌశల్ వికాస్ యోజన (నైపుణ్య శిక్షణ)", "पीएम कौशल विकास योजना (कौशल प्रशिक्षण)"),
+      T("Short-term skill training courses with a certificate.", "సర్టిఫికేట్‌తో కూడిన స్వల్పకాలిక నైపుణ్య శిక్షణ కోర్సులు.", "प्रमाण पत्र के साथ अल्पकालिक कौशल प्रशिक्षण पाठ्यक्रम।"),
+      [gte("age", 15), lte("age", 45)], [],
+      ["aadhaar", "bank_passbook", "marksheet"]),
+    S("ddugky", ["work"],
+      T("DDU-GKY (rural youth skills and jobs)", "డీడీయూ-జీకేవై (గ్రామీణ యువత నైపుణ్యం, ఉద్యోగాలు)", "डीडीयू-जीकेवाई (ग्रामीण युवा कौशल और रोज़गार)"),
+      T("Skill training with job placement help for poor rural youth.", "పేద గ్రామీణ యువతకు ఉద్యోగ సహాయంతో నైపుణ్య శిక్షణ.", "गरीब ग्रामीण युवाओं के लिए नौकरी दिलाने में मदद के साथ कौशल प्रशिक्षण।"),
+      [eq("rural", true), eq("bpl", true), gte("age", 15), lte("age", 35)], [],
+      ["aadhaar", "bpl_proof", "marksheet", "bank_passbook"]),
+    S("nrlm", ["women", "work"],
+      T("DAY-NRLM (women's self-help groups)", "డీఏవై-ఎన్‌ఆర్‌ఎల్‌ఎం (మహిళా స్వయం సహాయక సంఘాలు)", "डीएवाई-एनआरएलएम (महिला स्वयं सहायता समूह)"),
+      T("Join a women's self-help group for savings, loans and livelihood support.", "పొదుపు, రుణాలు, జీవనోపాధి సహాయం కోసం మహిళా స్వయం సహాయక సంఘంలో చేరండి.", "बचत, ऋण और आजीविका सहायता के लिए महिला स्वयं सहायता समूह से जुड़ें।"),
+      [eq("rural", true), eq("gender", "female"), eq("bpl", true)], [],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+    S("nulm", ["work"],
+      T("DAY-NULM (urban livelihoods)", "డీఏవై-ఎన్‌యూఎల్‌ఎం (పట్టణ జీవనోపాధి)", "डीएवाई-एनयूएलएम (शहरी आजीविका)"),
+      T("Skill training and credit support for poor urban households.", "పేద పట్టణ కుటుంబాలకు నైపుణ్య శిక్షణ, రుణ సహాయం.", "गरीब शहरी परिवारों को कौशल प्रशिक्षण और ऋण सहायता।"),
+      [eq("rural", false), eq("bpl", true), gte("age", 18), lte("age", 60)], [],
+      ["aadhaar", "bpl_proof", "address_proof", "bank_passbook"]),
+    S("naps", ["work", "education"],
+      T("National Apprenticeship Promotion Scheme", "జాతీయ అప్రెంటిస్‌షిప్ ప్రోత్సాహక పథకం", "राष्ट्रीय प्रशिक्षुता प्रोत्साहन योजना"),
+      T("Paid on-the-job training (apprenticeship) with employers.", "యజమానుల వద్ద జీతంతో కూడిన ఉద్యోగ శిక్షణ (అప్రెంటిస్‌షిప్).", "नियोक्ताओं के साथ वेतन सहित कार्य प्रशिक्षण (प्रशिक्षुता)।"),
+      [gte("age", 14)], [],
+      ["aadhaar", "marksheet", "bank_passbook"]),
+
+    /* ---- older adults and disability ---- */
+    S("rvy", ["old_age", "health"],
+      T("Rashtriya Vayoshri Yojana (aids for seniors)", "రాష్ట్రీయ వయోశ్రీ యోజన (వృద్ధులకు సహాయక పరికరాలు)", "राष्ट्रीय वयोश्री योजना (वरिष्ठ नागरिकों के लिए सहायक उपकरण)"),
+      T("Free aids such as walking sticks or hearing aids for poor senior citizens.", "పేద వృద్ధులకు చేతికర్రలు, వినికిడి యంత్రాల వంటి ఉచిత పరికరాలు.", "गरीब वरिष्ठ नागरिकों को छड़ी, श्रवण यंत्र जैसे मुफ़्त उपकरण।"),
+      [gte("age", 60), eq("bpl", true)], [],
+      ["aadhaar", "age_proof", "bpl_proof"]),
+    S("scss", ["old_age", "money"],
+      T("Senior Citizens Savings Scheme", "సీనియర్ సిటిజన్స్ సేవింగ్స్ స్కీమ్", "वरिष्ठ नागरिक बचत योजना"),
+      T("A post office or bank savings scheme with regular interest for seniors.", "వృద్ధులకు క్రమమైన వడ్డీతో పోస్టాఫీసు లేదా బ్యాంకు పొదుపు పథకం.", "वरिष्ठ नागरिकों के लिए नियमित ब्याज वाली डाकघर या बैंक बचत योजना।"),
+      [gte("age", 60)], [],
+      ["aadhaar", "age_proof", "address_proof", "bank_passbook"]),
+    S("adip", ["disability", "health"],
+      T("ADIP (assistive devices for persons with disabilities)", "ఏడీఐపీ (దివ్యాంగులకు సహాయక పరికరాలు)", "एडीआईपी (दिव्यांगजनों के लिए सहायक उपकरण)"),
+      T("Free or low-cost aids such as wheelchairs and hearing aids.", "వీల్‌చైర్లు, వినికిడి యంత్రాల వంటి ఉచిత లేదా తక్కువ ఖర్చు పరికరాలు.", "व्हीलचेयर, श्रवण यंत्र जैसे मुफ़्त या सस्ते उपकरण।"),
+      [eq("disability_40_plus", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "disability_certificate", "income_certificate"]),
+    S("udid", ["disability"],
+      T("UDID (Unique Disability ID card)", "యూడీఐడీ (ప్రత్యేక వైకల్య గుర్తింపు కార్డు)", "यूडीआईडी (विशिष्ट दिव्यांगता पहचान पत्र)"),
+      T("One national ID card that proves disability for many schemes.", "అనేక పథకాలకు వైకల్యాన్ని నిరూపించే ఒకే జాతీయ గుర్తింపు కార్డు.", "कई योजनाओं में दिव्यांगता साबित करने वाला एक राष्ट्रीय पहचान पत्र।"),
+      [eq("disability_40_plus", true)], [],
+      ["aadhaar", "disability_certificate", "address_proof"]),
+
+    /* ---- education ---- */
+    S("pre_matric_dis", ["education", "disability"],
+      T("Pre-Matric Scholarship for students with disabilities", "వైకల్యం ఉన్న విద్యార్థులకు ప్రీ-మెట్రిక్ స్కాలర్‌షిప్", "दिव्यांग विद्यार्थियों के लिए प्री-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for school students with disabilities.", "వైకల్యం ఉన్న పాఠశాల విద్యార్థులకు స్కాలర్‌షిప్.", "दिव्यांग स्कूली छात्रों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("disability_40_plus", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "disability_certificate", "student_proof", "income_certificate", "bank_passbook"]),
+    S("saksham", ["education", "disability"],
+      T("Saksham Scholarship (disabled students, technical courses)", "సక్షమ్ స్కాలర్‌షిప్ (వైకల్యం ఉన్న విద్యార్థులు, సాంకేతిక కోర్సులు)", "सक्षम छात्रवृत्ति (दिव्यांग छात्र, तकनीकी पाठ्यक्रम)"),
+      T("Scholarship for students with disabilities in technical degree or diploma courses.", "సాంకేతిక డిగ్రీ లేదా డిప్లొమా కోర్సుల్లో వైకల్యం ఉన్న విద్యార్థులకు స్కాలర్‌షిప్.", "तकनीकी डिग्री या डिप्लोमा में पढ़ रहे दिव्यांग छात्रों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("disability_40_plus", true), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "disability_certificate", "student_proof", "marksheet", "income_certificate", "bank_passbook"]),
+    S("post_matric_scst", ["education"],
+      T("Post-Matric Scholarship for SC/ST students", "ఎస్‌సీ/ఎస్‌టీ విద్యార్థులకు పోస్ట్-మెట్రిక్ స్కాలర్‌షిప్", "एससी/एसटी विद्यार्थियों के लिए पोस्ट-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for SC/ST students studying after class 10.", "10వ తరగతి తర్వాత చదువుతున్న ఎస్‌సీ/ఎస్‌టీ విద్యార్థులకు స్కాలర్‌షిప్.", "10वीं के बाद पढ़ रहे एससी/एसटी विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("sc_st", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "caste_certificate", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("yasasvi", ["education"],
+      T("PM YASASVI (OBC/EBC/DNT scholarships)", "పీఎం యశస్వి (ఓబీసీ/ఈబీసీ/డీఎన్‌టీ స్కాలర్‌షిప్‌లు)", "पीएम यशस्वी (ओबीसी/ईबीसी/डीएनटी छात्रवृत्ति)"),
+      T("Scholarships for OBC, EBC and DNT students.", "ఓబీసీ, ఈబీసీ, డీఎన్‌టీ విద్యార్థులకు స్కాలర్‌షిప్‌లు.", "ओबीसी, ईबीसी और डीएनटी विद्यार्थियों के लिए छात्रवृत्तियाँ।"),
+      [eq("student", true), eq("obc", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "caste_certificate", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("minority_post", ["education"],
+      T("Post-Matric Scholarship for minority students", "మైనారిటీ విద్యార్థులకు పోస్ట్-మెట్రిక్ స్కాలర్‌షిప్", "अल्पसंख्यक विद्यार्थियों के लिए पोस्ट-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for students from notified minority communities studying after class 10.", "10వ తరగతి తర్వాత చదువుతున్న నోటిఫై చేసిన మైనారిటీ విద్యార్థులకు స్కాలర్‌షిప్.", "10वीं के बाद पढ़ रहे अधिसूचित अल्पसंख्यक विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("minority", true), lte("household_income_lakh", 2)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("minority_pre", ["education"],
+      T("Pre-Matric Scholarship for minority students", "మైనారిటీ విద్యార్థులకు ప్రీ-మెట్రిక్ స్కాలర్‌షిప్", "अल्पसंख्यक विद्यार्थियों के लिए प्री-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for minority students in school (class 1 to 10).", "పాఠశాల (1 నుండి 10 తరగతులు)లో చదువుతున్న మైనారిటీ విద్యార్థులకు స్కాలర్‌షిప్.", "स्कूल (कक्षा 1 से 10) में पढ़ रहे अल्पसंख्यक विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("minority", true), lte("household_income_lakh", 1)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("nmms", ["education"],
+      T("National Means-cum-Merit Scholarship", "జాతీయ మీన్స్-కమ్-మెరిట్ స్కాలర్‌షిప్", "राष्ट्रीय आय-सह-योग्यता छात्रवृत्ति"),
+      T("Scholarship for talented students from low-income families to continue school after class 8.", "8వ తరగతి తర్వాత చదువు కొనసాగించడానికి తక్కువ ఆదాయ కుటుంబాల ప్రతిభావంతులైన విద్యార్థులకు స్కాలర్‌షిప్.", "8वीं के बाद पढ़ाई जारी रखने के लिए कम आय वाले परिवारों के प्रतिभाशाली विद्यार्थियों को छात्रवृत्ति।"),
+      [eq("student", true), lte("household_income_lakh", 4)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("pragati", ["education", "women"],
+      T("Pragati Scholarship for girls in technical education", "సాంకేతిక విద్యలో బాలికలకు ప్రగతి స్కాలర్‌షిప్", "तकनीकी शिक्षा में छात्राओं के लिए प्रगति छात्रवृत्ति"),
+      T("Scholarship for girls studying technical degree or diploma courses.", "సాంకేతిక డిగ్రీ లేదా డిప్లొమా కోర్సులు చదివే బాలికలకు స్కాలర్‌షిప్.", "तकनीकी डिग्री या डिप्लोमा पढ़ रही छात्राओं के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("gender", "female"), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("vidyalaxmi", ["education", "money"],
+      T("PM Vidyalaxmi (education loan support)", "పీఎం విద్యాలక్ష్మి (విద్యా రుణ సహాయం)", "पीएम विद्यालक्ष्मी (शिक्षा ऋण सहायता)"),
+      T("Help to get a bank education loan for higher studies.", "ఉన్నత చదువులకు బ్యాంకు విద్యా రుణం పొందడానికి సహాయం.", "उच्च शिक्षा के लिए बैंक शिक्षा ऋण दिलाने में सहायता।"),
+      [eq("student", true), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"])
+  ];
+})();
 if (typeof module !== "undefined" && module.exports) module.exports = SS_SCHEMES;

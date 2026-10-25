@@ -13,6 +13,9 @@ var SSIcons = (function () {
     spouse_death_certificate: [DOC, "M10 12h6 M10 16h4"],
     disability_certificate: [DOC, "M9.5 14.5l2 2 4-4"],
     ration_card: ["M4 10h16l-1.6 9H5.6z", "M8 10l3-5 M16 10l-3-5", "M9 14v2 M12 14v2 M15 14v2"],
+    // generic fallbacks
+    doc: [DOC, "M10 13h6 M10 17h4"],
+    scheme: ["M3 10l9-6 9 6", "M5 10v8 M9 10v8 M15 10v8 M19 10v8", "M3 20h18"],
     // schemes
     pm_kisan: ["M12 21V9", "M12 9c-3 0-4-2-4-5 3 0 4 2 4 5z M12 9c3 0 4-2 4-5-3 0-4 2-4 5z", "M12 15c-3 0-4-2-4-4 M12 15c3 0 4-2 4-4"],
     ignwps: ["M12 2.5c1.6 2 2.2 3.4 0 5.5-2.2-2.1-1.6-3.5 0-5.5z", "M9 10h6v10a1 1 0 01-1 1h-4a1 1 0 01-1-1z"],
@@ -21,13 +24,13 @@ var SSIcons = (function () {
     pmjay: ["M12 20.5s-7.5-4.6-7.5-10.5A4.2 4.2 0 0112 7.7 4.2 4.2 0 0119.5 10c0 5.9-7.5 10.5-7.5 10.5z", "M12 10v5 M9.5 12.5h5"]
   };
 
-  function icon(name) {
+  function icon(name, fallback) {
     var svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("class", "ico");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
-    (PATHS[name] || []).forEach(function (d) {
+    (PATHS[name] || PATHS[fallback] || []).forEach(function (d) {
       var p = document.createElementNS(NS, "path");
       p.setAttribute("d", d);
       svg.appendChild(p);

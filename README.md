@@ -12,7 +12,7 @@ check eligibility, prepare documents, pre-check name mismatches, and produce an 
 Double-click `index.html`. That's it. Plain HTML, CSS and classic `<script>` tags: no framework, no build step,
 no backend, no CDN, no fonts or images. Data files are `.js` files that assign to globals, so nothing is fetched.
 
-Total payload is about 120 KB (`cat index.html css/* js/* data/*`), well under the 300 KB budget.
+Total payload is about 200 KB (`index.html`, `css/`, `js/`, `data/`), under the 300 KB budget.
 
 Run the tests (Node 18+, built-in runner, no install):
 
@@ -22,11 +22,26 @@ node --test tests/engine.test.mjs tests/mismatch.test.mjs tests/i18n.test.mjs te
 
 Optional: `index.html?idle=10` shortens the inactivity wipe to 10 seconds, handy for demoing the warning.
 
+## Sample database (50 schemes)
+
+`data/schemes.js` holds a sample of **50 national schemes** (farming, housing, women and children, work and business,
+education, money and food, older adults, disability). Run `node tools/export-csv.mjs` to produce:
+
+- `SCHEMES_SAMPLE.csv`: the 50 schemes in plain language (rules, exclusions, documents) with empty columns for
+  "Checked by", "Official page checked" and "Notes". **Every scheme is marked UNVERIFIED.**
+- `TELUGU_REVIEW.csv`: every Telugu string next to its English source, with a column for the corrected Telugu.
+
+**Important:** the rules were drafted from general knowledge, not checked against each scheme's official page, and real
+criteria change with time and state. Income limits use `household_income_lakh` (yearly income rounded up to a whole lakh),
+so they are approximate. Before presenting any result as correct, someone must check each row against the official
+scheme page (search the scheme name on https://www.myscheme.gov.in) and fill in the CSV. State schemes are not included,
+because their names and rules change with each government; add them with the steps below once you pick a state.
+
 ## What it does
 
 1. Language: English, Telugu, Hindi. All UI text comes from `data/i18n.js`.
 2. Start screen with life-event tiles (they only narrow the starting set of schemes) and a privacy note.
-3. Adaptive questions. Rules are three-valued (true / false / unknown). The next question is the unanswered
+3. Adaptive questions (28 possible questions across the 50 schemes; a person usually answers fewer, e.g. 15 to 24). Rules are three-valued (true / false / unknown). The next question is the unanswered
    attribute that appears in the most still-undecided schemes (tie-break: earliest required condition).
    "I don't know" is always allowed.
 4. Results: Likely eligible / Needs a quick check / Not eligible (collapsed), each with a plain-language "why".
@@ -99,9 +114,9 @@ The panel computes everything from the current run:
   `EventSource` (wrapped at load), cross-checked against the browser's resource timeline. It should read 0.
   Loading the app's own local files at page start is not counted.
 
-Reference runs from the engine (see `tests/` and `DEMO_SCRIPT.md`): Persona 1 with "check everything" asks
-9 of 9 (no saving, every scheme is relevant to her); the same person with the "Lost my spouse" tile asks 4 of 4;
-a 72-year-old asks 3 of 9. The saving comes from rejecting schemes early, so it is large for some people and zero for others.
+Reference runs from the engine over the 50-scheme sample (see `tests/` and `DEMO_SCRIPT.md`), when every answer is known:
+Persona 1 with "check everything" asks 24 of 28; a 72-year-old man in a city asks 15 of 28; Persona 1 with the "Lost my
+spouse" tile asks 5 of 5 (that tile narrows to two schemes). The saving comes from rejecting schemes early, so it varies by person.
 
 ## Voice and privacy
 
@@ -114,6 +129,14 @@ In some browsers (for example Chrome and Edge) speech recognition sends audio to
 The app cannot control that, which is why the notice appears. Text-to-speech may also use online voices in some browsers.
 
 Everything else is in-memory only: no localStorage, sessionStorage, cookies or analytics.
+
+## Trying it on a phone
+
+1. Easiest: copy the whole `seva-sahayak` folder to the phone and open `index.html` with a file manager (Chrome may need
+   "Open with Chrome"). Everything works except voice.
+2. Or from a laptop on the same Wi-Fi: run `python -m http.server 8000` inside the folder, find the laptop's IP address,
+   and open `http://<laptop-ip>:8000` on the phone. Browsers only allow speech recognition on HTTPS or localhost,
+   so voice input will not work this way, but text-to-speech may.
 
 ## Translation review needed
 
@@ -130,9 +153,8 @@ text in `data/schemes.js` and `data/documents.js`. Scheme names are transliterat
   "Needs a quick check" and names what could not be confirmed.
 - "Widowed" is only asked while a scheme that needs it (the widow pension) is still undecided, so it is naturally
   asked only when gender is female or unknown.
-- Tiles filter by scheme tag: Farming → PM-KISAN, Lost my spouse → widow pension, Old age → old age pension and PM-JAY,
-  Health → PM-JAY, Disability → disability pension, Not sure → everything. A narrowed set can hide a scheme you
-  qualify for (for example a widow who farms should pick "Not sure" to see PM-KISAN).
+- Tiles filter by scheme tag (each scheme has one or more tags in `data/schemes.js`); "Not sure" uses all 50. A narrowed set can
+  hide a scheme you qualify for (for example a widow who farms should pick "Not sure" to see PM-KISAN).
 - PM-JAY is "age 70 or more OR listed" per the brief (demo-simplified).
 - Name comparison: honorifics `mr mrs ms smt sri shri late dr` are ignored. Tokens of three letters or fewer must
   match exactly to count as a spelling variant, and four-letter tokens may differ by one letter, to avoid calling
@@ -148,7 +170,7 @@ text in `data/schemes.js` and `data/documents.js`. Scheme names are transliterat
 
 ## Known limitations
 
-- Rules are simplified and cover five schemes only. Real eligibility depends on the state and changes over time.
+- Rules are simplified and the sample covers 50 national schemes only, none verified yet. Real eligibility depends on the state and changes over time.
 - No amounts, deadlines, helpline numbers or scheme-specific URLs are shown on purpose.
 - Spoken numbers are understood as digits (in any of the three scripts) or English words; Telugu and Hindi number
   words are not parsed.
