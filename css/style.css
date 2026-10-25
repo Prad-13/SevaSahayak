@@ -28,6 +28,23 @@
 html { font-size: 100%; -webkit-text-size-adjust: 100%; }
 html[data-size="1"] { font-size: 120%; }
 html[data-size="2"] { font-size: 140%; }
+html[data-size="3"] { font-size: 170%; }
+/* Largest size doubles as a simplified layout: one column, taller buttons, fewer distractions. */
+html[data-size="3"] .tiles { grid-template-columns: 1fr; }
+html[data-size="3"] .tile, html[data-size="3"] .tile.wide { flex-direction: row; justify-content: flex-start; min-height: 5rem; padding: .75rem 1rem; text-align: start; }
+html[data-size="3"] .answers.yn { grid-template-columns: 1fr; }
+html[data-size="3"] button, html[data-size="3"] .btn { min-height: 64px; }
+html[data-size="3"] .steps li:not([aria-current="step"]) .lbl { display: none; }
+html[data-size="3"] .steps li[aria-current="step"] { flex: 4 1 0; }
+html[data-size="3"] main, html[data-size="3"] .top > * { max-width: 40rem; }
+html[data-size="3"] .disclaimer, html[data-size="3"] .hint { font-size: .85rem; }
+html[data-size="3"] body { line-height: 1.6; }
+html[data-size="3"] .brand { font-size: 1.1rem; }
+html[data-size="3"] .lang { display: flex; width: 100%; }
+html[data-size="3"] .lang button { flex: 1 1 0; min-width: 0; padding: 0 .25rem; font-size: .8rem; }
+html[data-size="3"] .steps li:not([aria-current="step"]) .num { display: none; }
+html[data-size="3"] .steps li:not([aria-current="step"]) { flex: 1 1 0; }
+html[data-size="3"] .steps { overflow: hidden; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: system-ui, -apple-system, "Segoe UI", "Nirmala UI", "Noto Sans Telugu", "Noto Sans Devanagari", Mangal, Roboto, Arial, sans-serif;

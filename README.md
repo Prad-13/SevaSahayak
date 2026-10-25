@@ -38,6 +38,7 @@ Optional: `index.html?idle=10` shortens the inactivity wipe to 10 seconds, handy
 9. "Clear my details" on every screen and auto-wipe after 5 minutes of inactivity (with a 30 s warning).
 10. "Demo metrics" panel (live numbers, see below).
 11. Optional voice (off by default).
+12. Text size button cycles four levels; the largest (A+++) is a simplified large-print layout: 170% text, one column, taller buttons.
 
 ## Folder layout
 

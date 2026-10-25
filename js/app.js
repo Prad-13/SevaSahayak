@@ -126,7 +126,7 @@
       });
       const tools = $("tools");
       tools.append(
-        h("button", { type: "button", id: "size-btn", class: "small", onclick: () => { ui.size = (ui.size + 1) % 3; render(false, "size-btn"); } }),
+        h("button", { type: "button", id: "size-btn", class: "small", onclick: () => { ui.size = (ui.size + 1) % 4; render(false, "size-btn"); } }),
         h("button", { type: "button", id: "next-btn", class: "small primary", onclick: nextPerson }),
         h("span", { id: "helper-count", class: "hint", role: "status" }),
         h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) }),
@@ -152,7 +152,7 @@
     $("voice-btn").setAttribute("aria-pressed", String(ui.voiceOn));
     $("voice-btn").hidden = !(SSVoice.recognitionSupported() || SSVoice.speechSupported());
     I.LANGS.forEach((l) => $("lang-" + l.code).setAttribute("aria-pressed", String(l.code === I.getLang())));
-    $("size-btn").textContent = "A" + "+".repeat(ui.size + 1);
+    $("size-btn").textContent = "A" + "+".repeat(Math.min(ui.size + 1, 3));
     $("size-btn").setAttribute("aria-label", t("size.label") + ". " + t("size." + ui.size));
     $("clear-btn").textContent = t("clear");
 
@@ -358,11 +358,11 @@
       h("span", { class: "qtext", id: "qtext", text: I.pick(q.text) }));
     box.append(heading);
 
-    const dontKnow = h("button", { type: "button", class: "ghost unk", id: "ans-unknown", onclick: () => answer(attr, E.UNKNOWN) }, t("q.dontknow"));
+    const dontKnow = h("button", { type: "button", class: "ghost unk", id: "ans-unknown", onclick: () => answer(attr, E.UNKNOWN) }, "? " + t("q.dontknow"));
     if (q.type === "yesno") {
       box.append(h("div", { class: "answers yn" },
-        h("button", { type: "button", class: "primary", id: "ans-yes", onclick: () => answer(attr, true) }, t("q.yes")),
-        h("button", { type: "button", class: "primary", id: "ans-no", onclick: () => answer(attr, false) }, t("q.no")),
+        h("button", { type: "button", class: "primary", id: "ans-yes", onclick: () => answer(attr, true) }, "✓ " + t("q.yes")),
+        h("button", { type: "button", class: "primary", id: "ans-no", onclick: () => answer(attr, false) }, "✗ " + t("q.no")),
         dontKnow));
     } else if (q.type === "choice") {
       box.append(h("div", { class: "answers" },
