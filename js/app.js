@@ -127,15 +127,19 @@
       const tools = $("tools");
       tools.append(
         h("button", { type: "button", id: "size-btn", class: "small", onclick: () => { ui.size = (ui.size + 1) % 3; render(false, "size-btn"); } }),
-        h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) }),
-        h("button", { type: "button", id: "helper-btn", class: "small", onclick: () => { ui.helper = !ui.helper; render(false, "helper-btn"); } }),
         h("button", { type: "button", id: "next-btn", class: "small primary", onclick: nextPerson }),
         h("span", { id: "helper-count", class: "hint", role: "status" }),
-        h("button", { type: "button", id: "metrics-btn", class: "small", onclick: () => { ui.metricsOn = !ui.metricsOn; render(false, "metrics-btn"); } }),
-        h("button", { type: "button", id: "voice-btn", class: "small", onclick: toggleVoice })
+        h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) }),
+        h("details", { id: "more", class: "more" },
+          h("summary", { id: "more-sum" }),
+          h("div", { class: "more-body" },
+            h("button", { type: "button", id: "helper-btn", class: "small", onclick: () => { ui.helper = !ui.helper; render(false, "helper-btn"); } }),
+            h("button", { type: "button", id: "metrics-btn", class: "small", onclick: () => { ui.metricsOn = !ui.metricsOn; render(false, "metrics-btn"); } }),
+            h("button", { type: "button", id: "voice-btn", class: "small", onclick: toggleVoice })))
       );
       chromeBuilt = true;
     }
+    $("more-sum").textContent = "⋯ " + t("more");
     $("helper-btn").textContent = t("helper.toggle");
     $("helper-btn").setAttribute("aria-pressed", String(ui.helper));
     $("next-btn").textContent = t("helper.next");
@@ -154,7 +158,7 @@
 
     const cur = STEP_OF[s.screen];
     const steps = $("steps");
-    steps.replaceChildren(...STEP_KEYS.map((k, i) => h("li", { "aria-current": i === cur ? "step" : null, text: t(k) })));
+    steps.replaceChildren(...STEP_KEYS.map((k, i) => h("li", { "aria-current": i === cur ? "step" : null, class: i < cur ? "done" : null }, h("span", { class: "num", "aria-hidden": "true", text: String(i + 1) }), h("span", { class: "lbl", text: t(k) }))));
   }
 
   let toastTimer = null;
@@ -315,6 +319,7 @@
 
   /* ---------- 1. start ---------- */
   function renderStart(main) {
+    main.append(h("p", { class: "lead", text: t("app.tagline") }));
     const heading = h("h2", { text: t("start.heading") });
     main.append(heading, h("p", { class: "hint", text: t("start.sub") }));
     main.append(h("div", { class: "tiles" }, SS_TILES.map((tile) =>
@@ -346,19 +351,21 @@
     const attr = E.nextAttribute(s.cands, s.answers);
     if (attr === null) { s.screen = "results"; return renderResults(main); }
     const q = Q[attr];
+    const box = h("section", { class: "qcard" });
+    main.append(box);
     const heading = h("h2", null,
       h("span", { class: "qnum", text: t("q.number", { n: s.asked.length + 1 }) }),
       h("span", { class: "qtext", id: "qtext", text: I.pick(q.text) }));
-    main.append(heading);
+    box.append(heading);
 
-    const dontKnow = h("button", { type: "button", id: "ans-unknown", onclick: () => answer(attr, E.UNKNOWN) }, t("q.dontknow"));
+    const dontKnow = h("button", { type: "button", class: "ghost unk", id: "ans-unknown", onclick: () => answer(attr, E.UNKNOWN) }, t("q.dontknow"));
     if (q.type === "yesno") {
-      main.append(h("div", { class: "stack" },
+      box.append(h("div", { class: "answers yn" },
         h("button", { type: "button", class: "primary", id: "ans-yes", onclick: () => answer(attr, true) }, t("q.yes")),
         h("button", { type: "button", class: "primary", id: "ans-no", onclick: () => answer(attr, false) }, t("q.no")),
         dontKnow));
     } else if (q.type === "choice") {
-      main.append(h("div", { class: "stack" },
+      box.append(h("div", { class: "answers" },
         q.options.map((o) => h("button", { type: "button", class: "primary", id: "ans-" + o.value, onclick: () => answer(attr, o.value) }, I.pick(o.label))),
         dontKnow));
     } else {
@@ -378,10 +385,11 @@
       } },
         h("div", { class: "field" }, h("label", { for: "q-input", text: t("q.numberLabel") }), input, err),
         h("div", { class: "row" }, h("button", { type: "submit", class: "primary" }, t("q.next")), dontKnow));
-      main.append(form);
+      box.append(form);
     }
-    main.append(voiceControls(attr));
-    main.append(h("p", { class: "hint", text: t("q.hint") }));
+    const vc = voiceControls(attr);
+    if (vc) box.append(vc);
+    box.append(h("p", { class: "hint", text: t("q.hint") }));
     main.append(h("div", { class: "row noprint" }, h("button", { type: "button", onclick: undoLast }, "← " + t("back"))));
     return heading;
   }
@@ -428,6 +436,9 @@
     const rank = { ELIGIBLE: 0, NEEDS_A_QUICK_CHECK: 1 };
     const active = all.filter((r) => r.status !== E.NOT_ELIGIBLE).sort((a, b) => rank[a.status] - rank[b.status]);
     const rejected = all.filter((r) => r.status === E.NOT_ELIGIBLE);
+    const countOf = (st) => all.filter((r) => r.status === st).length;
+    main.append(h("div", { class: "chips" }, [E.ELIGIBLE, E.NEEDS_A_QUICK_CHECK, E.NOT_ELIGIBLE].map((st) =>
+      h("span", { class: "chip " + st }, h("strong", { text: String(countOf(st)) }), " " + t("status." + st)))));
     active.forEach((r) => main.append(schemeCard(r)));
     if (rejected.length) {
       main.append(h("details", null,
