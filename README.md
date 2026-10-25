@@ -50,6 +50,7 @@ js/mismatch.js   name normalisation and comparison (browser and Node)
 js/voice.js      Web Speech API wrapper and spoken yes/no/number parsers
 js/i18n.js       t() helper
 js/metrics.js    demo metrics
+js/icons.js      inline SVG icons for schemes and documents
 data/schemes.js, documents.js, questions.js, i18n.js
 tests/           Node tests
 ```
@@ -77,6 +78,13 @@ tests/           Node tests
 3. If you use a new attribute, add a question for it in `SS_QUESTIONS` (`type`: `number`, `yesno` or `choice`,
    with `text` and `label` in three languages).
 4. Run the tests; the data-integrity test checks that every attribute has a question and every document exists.
+
+## Accessibility notes
+
+Contrast was computed from the CSS palette: all text pairs are at least 6.7:1 (WCAG AA needs 4.5:1; many are above 7:1),
+and the thinnest UI-component colour (green check/progress on white) is 3.3:1 (AA needs 3:1). Inactive step bars are
+decorative. Scheme and document icons are inline SVG (`js/icons.js`) and hidden from screen readers; the text next to
+them carries the meaning. Not yet tested with a real screen reader.
 
 ## Demo metrics (honest numbers)
 

@@ -174,6 +174,8 @@
   function go(screen) { s.screen = screen; render(true); }
 
   function render(focusHeading, focusId) {
+    // no question left to ask means the results screen, so the step indicator must say so too
+    if (s.screen === "question" && E.nextAttribute(s.cands, s.answers) === null) s.screen = "results";
     updateChrome();
     const main = $("main");
     main.replaceChildren();
@@ -414,7 +416,7 @@
     const sc = r.scheme;
     const lines = whyLines(sc, r.status);
     const card = h("article", { class: "card" },
-      h("h3", { text: I.pick(sc.name) }),
+      h("div", { class: "card-head" }, SSIcons.icon(sc.id), h("h3", { text: I.pick(sc.name) })),
       h("p", null, h("span", { class: "badge " + r.status },
         h("span", { "aria-hidden": "true", text: r.status === E.ELIGIBLE ? "✓" : r.status === E.NOT_ELIGIBLE ? "✗" : "?" }),
         t("status." + r.status))),
@@ -470,7 +472,7 @@
       const state = s.docs[d.id];
       const set = (v) => { s.docs[d.id] = v; render(false, "doc-" + d.id + (v ? "-have" : "-miss")); };
       const card = h("article", { class: "card docrow" },
-        h("h3", { text: I.pick(doc.name) }),
+        h("div", { class: "card-head" }, SSIcons.icon(d.id), h("h3", { text: I.pick(doc.name) })),
         h("p", { class: "hint", text: t("docs.for", { list: schemeNames(d.schemes) }) }),
         h("div", { class: "row" },
           h("button", { type: "button", id: "doc-" + d.id + "-have", "aria-pressed": String(state === true), onclick: () => set(true) }, t("docs.have")),
