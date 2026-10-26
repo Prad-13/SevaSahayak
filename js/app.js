@@ -5,7 +5,6 @@
   "use strict";
 
   const E = SSEngine, M = SSMismatch, I = SSI18n, t = I.t;
-  const OFFICIAL_URL = "https://www.myscheme.gov.in";
   const NAME_KEYS = ["aadhaar", "bank", "land"];
   const STEP_OF = { start: 0, question: 1, results: 2, docs: 3, names: 4, summary: 5 };
   const STEP_KEYS = ["nav.start", "nav.questions", "nav.results", "nav.docs", "nav.names", "nav.summary"];
@@ -566,7 +565,7 @@
       sec.items.forEach((i) => out.push("- " + i));
       out.push("");
     });
-    out.push(t("summary.official"), OFFICIAL_URL);
+    out.push(t("summary.official"));
     return out.join("\n");
   }
 
@@ -597,7 +596,6 @@
     art.append(h("p", { class: "official", text: t("summary.official") }));
     main.append(art);
     main.append(h("div", { class: "row noprint" },
-      h("a", { class: "btn primary", href: OFFICIAL_URL, target: "_blank", rel: "noopener noreferrer", text: t("summary.open") }),
       h("button", { type: "button", onclick: copySummary }, t("summary.copy")),
       h("button", { type: "button", onclick: () => window.print() }, t("summary.print"))));
     main.append(h("div", { class: "row noprint" },

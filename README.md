@@ -47,8 +47,8 @@ because their names and rules change with each government; add them with the ste
 4. Results: Likely eligible / Needs a quick check / Not eligible (collapsed), each with a plain-language "why".
 5. Document checklist with progress and generic "where to get it" guidance.
 6. Name mismatch pre-check (names only, compared on-device, never any ID numbers).
-7. Printable application summary with "Submission happens on the official website", a link to
-   https://www.myscheme.gov.in, Copy and Print.
+7. Printable application summary with the line "Submission happens on the official website", plus Copy and Print.
+   The app has no link to any government site: the person applies on the official website themselves.
 8. Helper mode for CSC operators ("Next person" wipes everything; a people-helped counter, a number only).
 9. "Clear my details" on every screen and auto-wipe after 5 minutes of inactivity (with a 30 s warning).
 10. "Demo metrics" panel (live numbers, see below).

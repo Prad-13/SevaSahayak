@@ -21,7 +21,7 @@ Persona: widow, 54, small farm, relative's shared phone, prefers Telugu.
 4. Tap **Get my documents ready**. Mark Aadhaar and bank passbook as "I have it". Mark the death certificate as
    "I don't have it" and show the "where to get it (check locally)" guidance and the "Documents ready: x of y" bar.
 5. Tap **Check names** and go on to the summary: show the *Submission happens on the official website* line,
-   then **Copy summary** and **Print**. Do not click through to the official site during the demo unless asked.
+   then **Copy summary** and **Print**. The app has no link to any government site on purpose; the person applies on the official website themselves.
 
 Optional contrast: restart, choose **Lost my spouse** (two schemes only). It asks 5 questions, but PM-KISAN is not
 considered, which is why the "check everything" tile exists.
