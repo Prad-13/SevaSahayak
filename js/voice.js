@@ -12,8 +12,12 @@
 
   var UNKNOWN = "?";
 
+  var PUNCT;
+  try { PUNCT = new RegExp("[^\\p{L}\\p{N}\\p{M}\\s]", "gu"); }
+  catch (e) { PUNCT = /[^\w\sÀ-ɏऀ-ॿఀ-౿]/g; }
+
   function tokens(text) {
-    return String(text || "").normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}\p{M}\s]/gu, " ").split(/\s+/).filter(Boolean);
+    return String(text || "").normalize("NFKC").toLowerCase().replace(PUNCT, " ").split(/\s+/).filter(Boolean);
   }
   function flat(text) { return " " + tokens(text).join(" ") + " "; }
 

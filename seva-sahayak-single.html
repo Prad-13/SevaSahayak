@@ -1,0 +1,2770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seva Sahayak</title>
+<meta name="description" content="College design prototype: check government scheme eligibility and get application-ready. Not an official app.">
+<style>
+/* Seva Sahayak: mobile-first, high contrast, no external fonts or images. */
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #475569;
+  --brand: #1e3a8a;
+  --brand-2: #1d4ed8;
+  --brand-ink: #ffffff;
+  --brand-soft: #e8eefc;
+  --line: #cbd5e1;
+  --line-strong: #64748b;
+  --ok: #14532d;
+  --ok-bg: #dcfce7;
+  --ok-line: #16a34a;
+  --warn: #713f12;
+  --warn-bg: #fef3c7;
+  --warn-line: #d97706;
+  --bad: #7f1d1d;
+  --bad-bg: #fee2e2;
+  --bad-line: #dc2626;
+  --focus: #f59e0b;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 14px rgba(15, 23, 42, .06);
+}
+* { box-sizing: border-box; }
+html { font-size: 100%; -webkit-text-size-adjust: 100%; }
+html[data-size="1"] { font-size: 120%; }
+html[data-size="2"] { font-size: 140%; }
+html[data-size="3"] { font-size: 170%; }
+/* Largest size doubles as a simplified layout: one column, taller buttons, fewer distractions. */
+html[data-size="3"] .tiles { grid-template-columns: 1fr; }
+html[data-size="3"] .tile, html[data-size="3"] .tile.wide { flex-direction: row; justify-content: flex-start; min-height: 5rem; padding: .75rem 1rem; text-align: start; }
+html[data-size="3"] .answers.yn { grid-template-columns: 1fr; }
+html[data-size="3"] button, html[data-size="3"] .btn { min-height: 64px; }
+html[data-size="3"] .steps li:not([aria-current="step"]) .lbl { display: none; }
+html[data-size="3"] .steps li[aria-current="step"] { flex: 4 1 0; }
+html[data-size="3"] main, html[data-size="3"] .top > * { max-width: 40rem; }
+html[data-size="3"] .disclaimer, html[data-size="3"] .hint { font-size: .85rem; }
+html[data-size="3"] body { line-height: 1.6; }
+html[data-size="3"] .brand { font-size: 1.1rem; }
+html[data-size="3"] .lang { display: flex; width: 100%; }
+html[data-size="3"] .lang button { flex: 1 1 0; min-width: 0; padding: 0 .25rem; font-size: .8rem; }
+html[data-size="3"] .steps li:not([aria-current="step"]) .num { display: none; }
+html[data-size="3"] .steps li:not([aria-current="step"]) { flex: 1 1 0; }
+html[data-size="3"] .steps { overflow: hidden; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", "Nirmala UI", "Noto Sans Telugu", "Noto Sans Devanagari", Mangal, Roboto, Arial, sans-serif;
+  line-height: 1.55; padding-bottom: 3rem;
+}
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .5rem; letter-spacing: -.005em; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.1rem; }
+p { margin: 0 0 .75rem; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+  main > * { animation: rise .25s ease-out both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+.skip { position: absolute; left: -999px; top: 0; background: var(--brand); color: var(--brand-ink); padding: .75rem 1rem; z-index: 50; border-radius: 0 0 var(--radius-sm) 0; }
+.skip:focus { left: 0; }
+
+/* ---------- header ---------- */
+.top { background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); padding: .75rem 1rem .6rem; }
+.top > * { max-width: 46rem; margin-left: auto; margin-right: auto; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
+.brand { font-size: 1.35rem; color: var(--brand); margin: 0; display: flex; align-items: center; gap: .5rem; }
+.brand::before { content: "S"; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 1.1rem; width: 2.1rem; height: 2.1rem; border-radius: 10px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
+
+/* language: segmented control */
+.lang { display: inline-flex; padding: 3px; background: var(--brand-soft); border-radius: 999px; gap: 2px; }
+.lang button { min-height: 48px; min-width: 48px; padding: 0 .9rem; border: 0; border-radius: 999px; background: transparent; color: var(--brand); font-weight: 700; }
+.lang button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.lang button:hover { background: rgba(30, 58, 138, .1); }
+.lang button[aria-pressed="true"]:hover { background: var(--brand); }
+
+/* tools: small chip buttons */
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .6rem; }
+.tools button { min-height: 48px; padding: 0 .85rem; font-size: .88rem; border-radius: 999px; border-width: 1.5px; font-weight: 600; }
+.tools button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+.tools button[aria-pressed="true"]::before { content: "\2713"; font-weight: 800; }
+.tools button.primary { background: var(--brand); color: var(--brand-ink); }
+.tools .more { flex-basis: 100%; margin: 0; }
+.tools .more > summary { min-height: 48px; width: fit-content; padding: 0 .85rem; border-radius: 999px; border: 1.5px dashed var(--line-strong); background: transparent; font-size: .88rem; }
+.tools .more[open] > summary { margin-bottom: .4rem; }
+.more-body { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tools .hint { margin: 0; font-size: .85rem; }
+
+.disclaimer { font-size: .8rem; color: var(--muted); margin: .6rem auto 0; padding: .45rem .7rem; background: var(--warn-bg); border-inline-start: 4px solid var(--warn-line); border-radius: 8px; }
+
+/* stepper */
+.steps { display: flex; gap: .3rem; list-style: none; padding: 0; margin: .75rem auto 0; counter-reset: s; overflow-x: auto; }
+.steps li { display: flex; align-items: center; gap: .35rem; flex: 1 1 0; min-width: 0; font-size: .78rem; color: var(--muted); position: relative; padding-top: .55rem; }
+.steps li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 4px; background: var(--line); }
+.steps li.done::before { background: var(--ok-line); }
+.steps li[aria-current="step"]::before { background: var(--brand-2); }
+.steps .num { flex: none; width: 1.35rem; height: 1.35rem; border-radius: 50%; display: grid; place-items: center; font-size: .72rem; font-weight: 800; background: var(--line); color: var(--ink); }
+.steps li.done .num { background: var(--ok-line); color: #fff; }
+.steps li[aria-current="step"] { color: var(--brand); font-weight: 700; }
+.steps li[aria-current="step"] .num { background: var(--brand-2); color: #fff; }
+.steps .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 559px) { .steps li:not([aria-current="step"]) .lbl { display: none; } .steps li[aria-current="step"] { flex: 3 1 0; } }
+
+/* ---------- buttons ---------- */
+button, .btn, input, select, textarea { font: inherit; }
+button, .btn {
+  min-height: 48px; min-width: 48px; padding: .6rem 1.1rem; border-radius: var(--radius-sm);
+  border: 2px solid var(--brand); background: var(--surface); color: var(--brand);
+  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  font-weight: 700; text-align: center; transition: background .15s, box-shadow .15s, transform .05s;
+}
+button:hover, .btn:hover { background: var(--brand-soft); }
+button:active, .btn:active { transform: translateY(1px); }
+button.primary, .btn.primary { background: var(--brand); color: var(--brand-ink); box-shadow: 0 2px 6px rgba(30, 58, 138, .3); }
+button.primary:hover, .btn.primary:hover { background: #172e6e; }
+button.ghost { border-color: var(--line-strong); color: var(--ink); background: transparent; font-weight: 600; }
+button.ghost:hover { background: #e2e8f0; }
+button.danger { border-color: var(--bad-line); color: var(--bad); }
+button.danger:hover { background: var(--bad-bg); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.row { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.1rem 0; }
+.row > .primary { flex: 1 1 14rem; }
+
+main { padding: 1.25rem 1rem; max-width: 46rem; margin: 0 auto; outline: none; }
+main h2:focus { outline: none; }
+.lead { font-size: 1.05rem; color: var(--muted); margin-bottom: 1.1rem; }
+
+/* ---------- start tiles ---------- */
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin: 1rem 0 1.25rem; }
+.tile { flex-direction: column; min-height: 7rem; font-size: 1.05rem; padding: .9rem .5rem; background: var(--surface); border: 1.5px solid var(--line); color: var(--ink); box-shadow: var(--shadow); border-radius: var(--radius); }
+.tile:hover { border-color: var(--brand-2); background: var(--surface); box-shadow: 0 0 0 3px var(--brand-soft), var(--shadow); }
+.tile .icon { font-size: 1.7rem; line-height: 1; width: 3.2rem; height: 3.2rem; display: grid; place-items: center; border-radius: 50%; background: var(--brand-soft); }
+.tile.wide { grid-column: 1 / -1; min-height: 4.5rem; flex-direction: row; background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.tile.wide:hover { background: #172e6e; }
+.tile.wide .icon { background: rgba(255, 255, 255, .2); width: 2.6rem; height: 2.6rem; }
+
+/* ---------- cards ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-inline-start: 6px solid var(--line-strong); border-radius: var(--radius); padding: 1rem 1.1rem; margin: .9rem 0; box-shadow: var(--shadow); }
+.card-head { display: flex; align-items: center; gap: .7rem; margin-bottom: .35rem; }
+.card-head h3 { margin: 0; }
+.ico { width: 2.4rem; height: 2.4rem; flex: none; padding: .45rem; border-radius: 12px; background: var(--brand-soft); color: var(--brand); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { margin-bottom: .35rem; font-size: 1.12rem; }
+.card:has(.badge.ELIGIBLE) { border-inline-start-color: var(--ok-line); }
+.card:has(.badge.NEEDS_A_QUICK_CHECK) { border-inline-start-color: var(--warn-line); }
+.card:has(.badge.NOT_ELIGIBLE) { border-inline-start-color: var(--bad-line); }
+.badge { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .7rem; border-radius: 999px; font-weight: 700; font-size: .9rem; border: 1.5px solid; }
+.badge.ELIGIBLE, .badge.ok { color: var(--ok); background: var(--ok-bg); border-color: var(--ok-line); }
+.badge.NEEDS_A_QUICK_CHECK, .badge.warning { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-line); }
+.badge.NOT_ELIGIBLE, .badge.fail { color: var(--bad); background: var(--bad-bg); border-color: var(--bad-line); }
+
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
+.chip { padding: .3rem .8rem; border-radius: 999px; font-size: .9rem; border: 1.5px solid; }
+.chip strong { font-size: 1.05rem; }
+.chip.ELIGIBLE { color: var(--ok); background: var(--ok-bg); border-color: var(--ok-line); }
+.chip.NEEDS_A_QUICK_CHECK { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-line); }
+.chip.NOT_ELIGIBLE { color: var(--bad); background: var(--bad-bg); border-color: var(--bad-line); }
+
+.why { list-style: none; padding: .6rem .75rem; margin: .5rem 0 0; font-size: .93rem; background: var(--bg); border-radius: var(--radius-sm); }
+.why li { padding-inline-start: 1.6rem; position: relative; margin-bottom: .3rem; }
+.why li:last-child { margin-bottom: 0; }
+.why li::before { position: absolute; inset-inline-start: 0; font-weight: 800; }
+.why li.ok::before { content: "\2713"; color: var(--ok-line); }
+.why li.no::before { content: "\2717"; color: var(--bad-line); }
+.why li.unk::before { content: "?"; color: var(--warn-line); }
+details { margin: .9rem 0; }
+details > summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 700; padding: .25rem .9rem; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); color: var(--muted); }
+details[open] > summary { margin-bottom: .5rem; }
+
+/* ---------- questions ---------- */
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem 1.1rem; }
+.qcard h2 { margin-bottom: 1rem; }
+.qnum { display: inline-block; font-size: .85rem; font-weight: 800; color: var(--brand); background: var(--brand-soft); padding: .2rem .75rem; border-radius: 999px; margin-bottom: .6rem; }
+.qtext { display: block; font-size: 1.35rem; font-weight: 700; line-height: 1.35; }
+.answers { display: grid; gap: .6rem; margin: 1rem 0 .5rem; }
+.answers.yn { grid-template-columns: 1fr 1fr; }
+.answers .unk { grid-column: 1 / -1; }
+.answers button { min-height: 56px; font-size: 1.1rem; }
+.answers.yn .primary:first-child { background: #166534; border-color: #166534; box-shadow: none; }
+.answers.yn .primary:nth-child(2) { background: #991b1b; border-color: #991b1b; box-shadow: none; }
+
+label { display: block; font-weight: 700; margin-bottom: .3rem; }
+input[type="text"], input[type="number"] {
+  width: 100%; min-height: 52px; padding: .55rem .85rem; border: 2px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-size: 1.1rem;
+}
+input:focus { border-color: var(--brand-2); outline: 3px solid var(--brand-soft); outline-offset: 0; }
+input[aria-invalid="true"] { border-color: var(--bad-line); }
+.field { margin: .85rem 0; }
+.error { color: var(--bad); font-weight: 700; margin: .35rem 0 0; }
+.error:empty { display: none; }
+.hint { color: var(--muted); font-size: .93rem; }
+
+.notice { border: 1px solid var(--brand-2); background: var(--brand-soft); border-radius: var(--radius); padding: .9rem 1rem; margin: 1.25rem 0; }
+.notice h3 { margin-bottom: .25rem; color: var(--brand); }
+.notice p:last-child, .notice ul:last-child { margin-bottom: 0; }
+.banner { background: var(--warn-bg); color: var(--warn); border-bottom: 3px solid var(--warn-line); padding: .75rem 1rem; font-weight: 700; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 30; }
+.toast { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); background: var(--ink); color: #fff; padding: .7rem 1.1rem; border-radius: 999px; max-width: 92vw; z-index: 40; display: none; box-shadow: var(--shadow); }
+.toast.show { display: block; }
+
+/* ---------- documents ---------- */
+.progress { width: 100%; height: .8rem; appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; overflow: hidden; background: var(--line); }
+.progress::-webkit-progress-bar { background: var(--line); }
+.progress::-webkit-progress-value { background: var(--ok-line); border-radius: 999px; transition: width .25s; }
+.progress::-moz-progress-bar { background: var(--ok-line); border-radius: 999px; }
+#doc-progress-label { font-weight: 800; color: var(--ink); margin: .5rem 0 .35rem; }
+.docrow .row { margin: .6rem 0 0; gap: .5rem; }
+.docrow .row button { flex: 1 1 8rem; }
+.docrow button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); }
+.docrow button[id$="-miss"][aria-pressed="true"] { background: var(--warn); border-color: var(--warn); }
+.guide { background: var(--warn-bg); border-inline-start: 5px solid var(--warn-line); padding: .6rem .8rem; margin-top: .75rem; border-radius: 8px; font-size: .93rem; }
+
+/* ---------- summary ---------- */
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem; box-shadow: var(--shadow); }
+.summary section { margin-bottom: 1.1rem; padding-bottom: .9rem; border-bottom: 1px solid var(--line); }
+.summary h3 { color: var(--brand); font-size: 1rem; text-transform: uppercase; letter-spacing: .04em; }
+.summary ul { margin: .25rem 0; padding-inline-start: 1.2rem; }
+.summary li { margin-bottom: .2rem; }
+.official { border: 2px solid var(--brand); padding: .8rem 1rem; border-radius: var(--radius-sm); font-weight: 800; background: var(--brand-soft); color: var(--brand); margin: 0; }
+
+/* ---------- metrics ---------- */
+.metrics { max-width: 46rem; margin: 1rem auto; padding: 1rem; border: 2px dashed var(--brand-2); border-radius: var(--radius); background: var(--surface); }
+.metrics h2 { font-size: 1.1rem; color: var(--brand); }
+.metrics dl { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; margin: .5rem 0; }
+.metrics dt { color: var(--muted); font-size: .93rem; }
+.metrics dd { margin: 0; font-weight: 800; text-align: end; font-variant-numeric: tabular-nums; }
+@media (max-width: 859px) { .metrics { margin-inline: 1rem; } }
+
+@media (min-width: 600px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .tile.wide { grid-column: auto; min-height: 7rem; flex-direction: column; }
+  .qcard { padding: 1.75rem; }
+}
+
+@media print {
+  .top, .banner, .toast, .metrics, .noprint, .skip { display: none !important; }
+  body { padding: 0; background: #fff; }
+  main { max-width: none; padding: 0; }
+  .card, .summary { box-shadow: none; break-inside: avoid; }
+  main > * { animation: none; }
+}
+
+</style>
+</head>
+<body>
+<a class="skip" id="skip" href="#main">Skip to main content</a>
+
+<header class="top" id="top">
+  <div class="top-row">
+    <h1 class="brand" id="brand">Seva Sahayak</h1>
+    <div class="lang" id="langs" role="group"></div>
+  </div>
+  <div class="tools" id="tools"></div>
+  <p class="disclaimer" id="disclaimer" role="note"></p>
+  <ol class="steps" id="steps"></ol>
+</header>
+
+<div class="banner" id="idle-banner" role="alert" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<main id="main" tabindex="-1"></main>
+
+<aside id="metrics" class="metrics" hidden></aside>
+
+<noscript><p class="noscript">This app needs JavaScript to run.</p></noscript>
+
+<script>
+/*
+ * Compatibility helpers for older phones (for example Android 9 with an old Chrome or WebView):
+ * small polyfills, and a visible message if the app fails to start (instead of a blank page).
+ */
+(function () {
+  "use strict";
+
+  if (!Element.prototype.replaceChildren) {
+    Element.prototype.replaceChildren = function () {
+      while (this.firstChild) this.removeChild(this.firstChild);
+      for (var i = 0; i < arguments.length; i++) {
+        var n = arguments[i];
+        this.appendChild(typeof n === "string" ? document.createTextNode(n) : n);
+      }
+    };
+  }
+  if (!Array.prototype.flat) {
+    Array.prototype.flat = function (depth) {
+      var out = [];
+      (function walk(a, d) {
+        a.forEach(function (x) {
+          if (Array.isArray(x) && d > 0) walk(x, d - 1); else out.push(x);
+        });
+      })(this, depth === undefined ? 1 : depth);
+      return out;
+    };
+  }
+
+  function show(msg) {
+    var box = document.getElementById("boot-error");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "boot-error";
+      box.setAttribute("role", "alert");
+      box.style.cssText = "margin:12px;padding:12px;border:3px solid #7f1d1d;background:#fee2e2;color:#7f1d1d;font:16px/1.4 sans-serif;";
+      var main = document.getElementById("main");
+      if (main && main.parentNode) main.parentNode.insertBefore(box, main); else document.body.appendChild(box);
+    }
+    var p = document.createElement("p");
+    p.style.margin = "0 0 6px";
+    p.textContent = msg;
+    box.appendChild(p);
+  }
+
+  window.addEventListener("error", function (e) {
+    show("Problem: " + (e.message || "script error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : ""));
+  });
+
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      var main = document.getElementById("main");
+      if (main && !main.firstChild && !document.getElementById("boot-error")) {
+        show("The app could not start. Please update Chrome, or open the single-file version (seva-sahayak-single.html).");
+      }
+    }, 800);
+  });
+})();
+
+</script>
+<script>
+/*
+ * All UI text. {name} placeholders are filled in by t().
+ * NOTE: the Telugu (te) and Hindi (hi) strings are DRAFTS and need review by a native speaker.
+ */
+var SS_I18N = {
+  en: {
+    "app.title": "Seva Sahayak",
+    "app.tagline": "Find government schemes you may qualify for, and get application-ready.",
+    "disclaimer": "College design prototype. Results are illustrative, based on simplified rules, and are not official advice. Always verify on official sources.",
+    "skip": "Skip to main content",
+    "lang.label": "Language",
+    "size.label": "Text size",
+    "size.0": "Text size: normal. Tap to make larger",
+    "size.1": "Text size: large. Tap to make larger",
+    "size.2": "Text size: extra large. Tap to make larger",
+    "size.3": "Text size: largest, simplified layout. Tap to reset",
+    "more": "More",
+    "clear": "Clear my details",
+    "clear.done": "Your details were erased.",
+    "back": "Back",
+    "start.heading": "What brings you here today?",
+    "start.sub": "Pick one. This only decides which schemes we look at first.",
+    "start.speak": "Speak",
+    "start.intro": "Welcome to Seva Sahayak. Tell us what brings you here. We will ask a few simple questions and help you get ready to apply.",
+    "privacy.title": "Your privacy",
+    "privacy.body": "Your answers stay in this page's memory only. Nothing is saved, there are no accounts and no tracking. Everything is erased when you close the page, tap \"Clear my details\", or after 5 minutes without activity. We never ask for Aadhaar, bank or other ID numbers. This app never submits anything and never logs in to any government site.",
+    "q.number": "Question {n}",
+    "q.dontknow": "I don't know",
+    "q.next": "Next",
+    "q.yes": "Yes",
+    "q.no": "No",
+    "q.numberLabel": "Type a number",
+    "q.error": "Please type a number between {min} and {max}.",
+    "q.hint": "\"I don't know\" is always a fine answer.",
+    "q.answered": "Your answer: {a}",
+    "results.title": "Your results",
+    "results.intro": "Based on your answers. These are illustrative only.",
+    "status.ELIGIBLE": "Likely eligible",
+    "status.NOT_ELIGIBLE": "Not eligible",
+    "status.NEEDS_A_QUICK_CHECK": "Needs a quick check",
+    "results.notEligible": "Not eligible ({n})",
+    "results.why": "Why",
+    "results.next": "Get my documents ready",
+    "results.restart": "Start again",
+    "why.met": "{label}: {answer}",
+    "why.failed": "{label}: you said {answer}, but this scheme needs {need}",
+    "why.unknown": "{label}: not confirmed (needs {need})",
+    "why.exclTriggered": "{label}: you said {answer}, which this scheme does not allow",
+    "why.exclUnknown": "{label}: not confirmed (this scheme does not allow \"yes\")",
+    "why.check": "We could not confirm: {list}, because you were not sure. A quick check at your local office or a CSC (Common Service Centre) will settle it.",
+    "need.yes": "yes",
+    "need.no": "no",
+    "need.gte": "{n} or more",
+    "need.lte": "{n} or less",
+    "or": "or",
+    "answer.unknown": "not sure",
+    "answer.yes": "yes",
+    "answer.no": "no",
+    "docs.title": "Document checklist",
+    "docs.intro": "These are the documents for schemes that are not ruled out. Tell us which ones you have.",
+    "docs.have": "I have it",
+    "docs.donthave": "I don't have it",
+    "docs.progress": "Documents ready: {x} of {y}",
+    "docs.where": "Where to get it (check locally)",
+    "docs.for": "Needed for: {list}",
+    "docs.none": "No schemes need documents right now.",
+    "docs.more": "and {n} more",
+    "summary.notEligibleCount": "Not eligible: {n} schemes",
+    "docs.next": "Check names on my records",
+    "names.title": "Name check",
+    "names.intro": "Type your name exactly as it is printed on each record. Names that do not match are a common reason applications fail. Do not type any ID numbers. This check happens on this device only.",
+    "names.aadhaar": "Name on Aadhaar",
+    "names.bank": "Name on bank passbook",
+    "names.land": "Name on land or income record",
+    "names.check": "Check names",
+    "names.need2": "Type at least two names to compare.",
+    "names.allOk": "All the names you typed match.",
+    "names.pair": "{a} and {b}",
+    "names.skip": "Skip to summary",
+    "names.next": "Go to summary",
+    "sev.ok": "OK",
+    "sev.warning": "Warning",
+    "sev.fail": "Likely to fail",
+    "class.EXACT": "These names are exactly the same.",
+    "class.FORMATTING_ONLY": "Only capital letters, spaces or punctuation differ. This is usually fine.",
+    "class.INITIAL_VS_FULL": "One record uses an initial and the other the full name. Some offices reject this.",
+    "class.ORDER_DIFFERS": "The same words appear in a different order. Some offices reject this.",
+    "class.SPELLING_VARIANT": "The spelling is slightly different. Some offices reject this.",
+    "class.DIFFERENT": "These names look different. This is likely to cause the application to fail.",
+    "class.cross": "The names are written in different scripts, so please check the spelling carefully.",
+    "fix.title": "Which record to correct (check locally)",
+    "fix.aadhaar": "Aadhaar: Aadhaar update centre",
+    "fix.bank": "Bank passbook: your bank branch (KYC update)",
+    "fix.land": "Land or income record: local revenue office",
+    "fix.hint": "Usually it is easiest to change the record that is different from the others. Check locally which one is right.",
+    "summary.title": "Application summary",
+    "summary.answers": "Your answers",
+    "summary.matched": "Schemes",
+    "summary.docs": "Documents",
+    "summary.names": "Name check",
+    "summary.official": "Submission happens on the official website.",
+    "summary.copy": "Copy summary",
+    "summary.copied": "Summary copied.",
+    "summary.copyFail": "Could not copy. Please select the text and copy it.",
+    "summary.print": "Print",
+    "summary.none": "None",
+    "summary.notChecked": "Not checked",
+    "summary.have": "have it",
+    "summary.missing": "still needed",
+    "summary.generated": "Illustrative summary from Seva Sahayak (college prototype). Not an official document.",
+    "nav.start": "Start",
+    "nav.questions": "Questions",
+    "nav.results": "Results",
+    "nav.docs": "Documents",
+    "nav.names": "Names",
+    "nav.summary": "Summary",
+    "helper.toggle": "Helper mode",
+    "helper.next": "Next person",
+    "helper.count": "People helped this session: {n}",
+    "idle.warn": "No activity. Your details will be erased in {s} seconds.",
+    "idle.keep": "Keep my details",
+    "idle.wiped": "Your details were erased after 5 minutes without activity.",
+    "metrics.toggle": "Demo metrics",
+    "metrics.title": "Demo metrics",
+    "metrics.questions": "Questions asked",
+    "metrics.fixed": "Fixed-form length (distinct attributes across candidate schemes)",
+    "metrics.fixedAll": "all schemes",
+    "metrics.saved": "Questions saved",
+    "metrics.time": "Time to result",
+    "metrics.size": "Rule data size",
+    "metrics.net": "Network requests made by the app",
+    "metrics.na": "not yet",
+    "metrics.note": "Measured live in this browser session. Time runs from the first question to the results screen.",
+    "voice.toggle": "Voice",
+    "voice.notice": "Before you turn on voice: in some browsers, speech recognition sends your audio to the browser company's servers (for example Google or Apple). This app's own code sends nothing, but it cannot control the browser's speech service. You can always type or tap instead.",
+    "voice.enable": "I understand, turn on voice",
+    "voice.cancel": "No thanks",
+    "voice.on": "Voice is on",
+    "voice.off": "Turn voice off",
+    "voice.mic": "Answer by voice",
+    "voice.listening": "Listening...",
+    "voice.heard": "Heard: \"{t}\"",
+    "voice.unclear": "Sorry, I did not understand. Please tap an answer.",
+    "voice.error": "Voice did not work. Please tap an answer.",
+    "voice.read": "Read aloud"
+  },
+
+  te: {
+    "app.title": "సేవా సహాయక్",
+    "app.tagline": "మీకు అర్హత ఉండే ప్రభుత్వ పథకాలను తెలుసుకోండి, దరఖాస్తుకు సిద్ధం అవ్వండి.",
+    "disclaimer": "ఇది కళాశాల డిజైన్ ప్రోటోటైప్. ఫలితాలు సరళీకృత నియమాల ఆధారంగా ఉదాహరణ మాత్రమే, అధికారిక సలహా కాదు. ఎల్లప్పుడూ అధికారిక వనరులలో ధృవీకరించుకోండి.",
+    "skip": "ప్రధాన భాగానికి వెళ్ళండి",
+    "lang.label": "భాష",
+    "size.label": "అక్షరాల పరిమాణం",
+    "size.0": "అక్షరాల పరిమాణం: సాధారణం. పెద్దది చేయడానికి నొక్కండి",
+    "size.1": "అక్షరాల పరిమాణం: పెద్దది. ఇంకా పెద్దది చేయడానికి నొక్కండి",
+    "size.2": "అక్షరాల పరిమాణం: చాలా పెద్దది. ఇంకా పెద్దది చేయడానికి నొక్కండి",
+    "size.3": "అక్షరాల పరిమాణం: అతి పెద్దది, సరళమైన లేఅవుట్. సాధారణానికి మార్చడానికి నొక్కండి",
+    "more": "మరిన్ని",
+    "clear": "నా వివరాలను తొలగించు",
+    "clear.done": "మీ వివరాలు తొలగించబడ్డాయి.",
+    "back": "వెనక్కి",
+    "start.heading": "ఈరోజు మీరు ఏ విషయంలో సహాయం కోసం వచ్చారు?",
+    "start.sub": "ఒకటి ఎంచుకోండి. ముందుగా ఏ పథకాలు చూడాలో మాత్రమే ఇది నిర్ణయిస్తుంది.",
+    "start.speak": "మాట్లాడండి",
+    "start.intro": "సేవా సహాయక్‌కు స్వాగతం. మీరు ఏ విషయంలో వచ్చారో ఎంచుకోండి. కొన్ని సులభమైన ప్రశ్నలు అడిగి దరఖాస్తుకు సిద్ధం కావడానికి సహాయం చేస్తాము.",
+    "privacy.title": "మీ గోప్యత",
+    "privacy.body": "మీ సమాధానాలు ఈ పేజీ మెమరీలో మాత్రమే ఉంటాయి. ఏదీ సేవ్ చేయబడదు, ఖాతాలు లేవు, ట్రాకింగ్ లేదు. పేజీ మూసివేసినప్పుడు, \"నా వివరాలను తొలగించు\" నొక్కినప్పుడు, లేదా 5 నిమిషాలు ఏమీ చేయకపోతే అన్నీ తొలగించబడతాయి. ఆధార్, బ్యాంకు లేదా ఇతర గుర్తింపు సంఖ్యలను మేము అడగము. ఈ యాప్ ఏదీ సమర్పించదు, ఏ ప్రభుత్వ సైట్‌లోకి లాగిన్ కాదు.",
+    "q.number": "ప్రశ్న {n}",
+    "q.dontknow": "నాకు తెలియదు",
+    "q.next": "తదుపరి",
+    "q.yes": "అవును",
+    "q.no": "కాదు",
+    "q.numberLabel": "సంఖ్యను టైప్ చేయండి",
+    "q.error": "దయచేసి {min} నుండి {max} మధ్య సంఖ్యను టైప్ చేయండి.",
+    "q.hint": "\"నాకు తెలియదు\" అనేది ఎప్పుడూ సరైన సమాధానమే.",
+    "q.answered": "మీ సమాధానం: {a}",
+    "results.title": "మీ ఫలితాలు",
+    "results.intro": "మీ సమాధానాల ఆధారంగా. ఇవి ఉదాహరణ మాత్రమే.",
+    "status.ELIGIBLE": "అర్హత ఉండే అవకాశం",
+    "status.NOT_ELIGIBLE": "అర్హత లేదు",
+    "status.NEEDS_A_QUICK_CHECK": "త్వరిత తనిఖీ అవసరం",
+    "results.notEligible": "అర్హత లేనివి ({n})",
+    "results.why": "ఎందుకు",
+    "results.next": "నా పత్రాలను సిద్ధం చేయండి",
+    "results.restart": "మళ్ళీ మొదలుపెట్టు",
+    "why.met": "{label}: {answer}",
+    "why.failed": "{label}: మీరు {answer} అన్నారు, కానీ ఈ పథకానికి {need} కావాలి",
+    "why.unknown": "{label}: నిర్ధారణ కాలేదు ({need} కావాలి)",
+    "why.exclTriggered": "{label}: మీరు {answer} అన్నారు, ఈ పథకంలో ఇది అనుమతించబడదు",
+    "why.exclUnknown": "{label}: నిర్ధారణ కాలేదు (ఈ పథకంలో \"అవును\" అనుమతించబడదు)",
+    "why.check": "మీకు తెలియదన్నందున వీటిని నిర్ధారించలేకపోయాము: {list}. స్థానిక కార్యాలయం లేదా సీఎస్‌సీ (కామన్ సర్వీస్ సెంటర్)లో త్వరగా తనిఖీ చేస్తే తెలుస్తుంది.",
+    "need.yes": "అవును",
+    "need.no": "కాదు",
+    "need.gte": "{n} లేదా అంతకంటే ఎక్కువ",
+    "need.lte": "{n} లేదా అంతకంటే తక్కువ",
+    "or": "లేదా",
+    "answer.unknown": "తెలియదు",
+    "answer.yes": "అవును",
+    "answer.no": "కాదు",
+    "docs.title": "పత్రాల జాబితా",
+    "docs.intro": "రద్దు కాని పథకాలకు కావలసిన పత్రాలు ఇవి. మీ దగ్గర ఏవి ఉన్నాయో చెప్పండి.",
+    "docs.have": "నా దగ్గర ఉంది",
+    "docs.donthave": "నా దగ్గర లేదు",
+    "docs.progress": "సిద్ధంగా ఉన్న పత్రాలు: {y} లో {x}",
+    "docs.where": "ఎక్కడ పొందాలి (స్థానికంగా తెలుసుకోండి)",
+    "docs.for": "వీటికి అవసరం: {list}",
+    "docs.none": "ప్రస్తుతం ఏ పథకానికీ పత్రాలు అవసరం లేదు.",
+    "docs.more": "మరియు {n} మరిన్ని",
+    "summary.notEligibleCount": "అర్హత లేనివి: {n} పథకాలు",
+    "docs.next": "నా రికార్డులపై పేర్లు తనిఖీ చేయండి",
+    "names.title": "పేరు తనిఖీ",
+    "names.intro": "ప్రతి రికార్డులో ముద్రించిన విధంగానే మీ పేరును టైప్ చేయండి. పేర్లు సరిపోలకపోవడం దరఖాస్తులు విఫలమవడానికి సాధారణ కారణం. ఏ గుర్తింపు సంఖ్యలూ టైప్ చేయవద్దు. ఈ తనిఖీ ఈ పరికరంలోనే జరుగుతుంది.",
+    "names.aadhaar": "ఆధార్‌లో పేరు",
+    "names.bank": "బ్యాంకు పాస్‌బుక్‌లో పేరు",
+    "names.land": "భూమి లేదా ఆదాయ రికార్డులో పేరు",
+    "names.check": "పేర్లు తనిఖీ చేయి",
+    "names.need2": "పోల్చడానికి కనీసం రెండు పేర్లు టైప్ చేయండి.",
+    "names.allOk": "మీరు టైప్ చేసిన అన్ని పేర్లు సరిపోతున్నాయి.",
+    "names.pair": "{a} మరియు {b}",
+    "names.skip": "సారాంశానికి వెళ్ళండి",
+    "names.next": "సారాంశానికి వెళ్ళు",
+    "sev.ok": "సరే",
+    "sev.warning": "హెచ్చరిక",
+    "sev.fail": "విఫలమయ్యే అవకాశం",
+    "class.EXACT": "ఈ పేర్లు సరిగ్గా ఒకేలా ఉన్నాయి.",
+    "class.FORMATTING_ONLY": "పెద్ద అక్షరాలు, ఖాళీలు లేదా విరామ చిహ్నాలు మాత్రమే వేరుగా ఉన్నాయి. ఇది సాధారణంగా పర్వాలేదు.",
+    "class.INITIAL_VS_FULL": "ఒక రికార్డులో ఇనీషియల్, మరొకదానిలో పూర్తి పేరు ఉంది. కొన్ని కార్యాలయాలు దీన్ని తిరస్కరిస్తాయి.",
+    "class.ORDER_DIFFERS": "అవే పదాలు వేరే వరుసలో ఉన్నాయి. కొన్ని కార్యాలయాలు దీన్ని తిరస్కరిస్తాయి.",
+    "class.SPELLING_VARIANT": "స్పెల్లింగ్ కొద్దిగా వేరుగా ఉంది. కొన్ని కార్యాలయాలు దీన్ని తిరస్కరిస్తాయి.",
+    "class.DIFFERENT": "ఈ పేర్లు వేరుగా కనిపిస్తున్నాయి. దరఖాస్తు విఫలమయ్యే అవకాశం ఉంది.",
+    "class.cross": "పేర్లు వేర్వేరు లిపులలో రాశారు, కాబట్టి స్పెల్లింగ్‌ను జాగ్రత్తగా చూడండి.",
+    "fix.title": "ఏ రికార్డును సరిచేయాలి (స్థానికంగా తెలుసుకోండి)",
+    "fix.aadhaar": "ఆధార్: ఆధార్ సవరణ కేంద్రం",
+    "fix.bank": "బ్యాంకు పాస్‌బుక్: మీ బ్యాంకు శాఖ (కేవైసీ అప్‌డేట్)",
+    "fix.land": "భూమి లేదా ఆదాయ రికార్డు: స్థానిక రెవెన్యూ కార్యాలయం",
+    "fix.hint": "ఇతరులతో సరిపోని రికార్డును మార్చడం సాధారణంగా సులభం. ఏది సరైనదో స్థానికంగా తెలుసుకోండి.",
+    "summary.title": "దరఖాస్తు సారాంశం",
+    "summary.answers": "మీ సమాధానాలు",
+    "summary.matched": "పథకాలు",
+    "summary.docs": "పత్రాలు",
+    "summary.names": "పేరు తనిఖీ",
+    "summary.official": "దరఖాస్తు సమర్పణ అధికారిక వెబ్‌సైట్‌లో జరుగుతుంది.",
+    "summary.copy": "సారాంశం కాపీ చేయి",
+    "summary.copied": "సారాంశం కాపీ అయింది.",
+    "summary.copyFail": "కాపీ కాలేదు. దయచేసి టెక్స్ట్‌ను ఎంచుకుని కాపీ చేయండి.",
+    "summary.print": "ప్రింట్",
+    "summary.none": "ఏమీ లేదు",
+    "summary.notChecked": "తనిఖీ చేయలేదు",
+    "summary.have": "ఉంది",
+    "summary.missing": "ఇంకా కావాలి",
+    "summary.generated": "సేవా సహాయక్ (కళాశాల ప్రోటోటైప్) నుండి ఉదాహరణ సారాంశం. ఇది అధికారిక పత్రం కాదు.",
+    "nav.start": "ప్రారంభం",
+    "nav.questions": "ప్రశ్నలు",
+    "nav.results": "ఫలితాలు",
+    "nav.docs": "పత్రాలు",
+    "nav.names": "పేర్లు",
+    "nav.summary": "సారాంశం",
+    "helper.toggle": "సహాయకుల మోడ్",
+    "helper.next": "తదుపరి వ్యక్తి",
+    "helper.count": "ఈ సెషన్‌లో సహాయం పొందినవారు: {n}",
+    "idle.warn": "ఏ చర్యా లేదు. {s} సెకన్లలో మీ వివరాలు తొలగించబడతాయి.",
+    "idle.keep": "నా వివరాలను ఉంచు",
+    "idle.wiped": "5 నిమిషాలు ఏ చర్యా లేనందున మీ వివరాలు తొలగించబడ్డాయి.",
+    "metrics.toggle": "డెమో మెట్రిక్స్",
+    "metrics.title": "డెమో మెట్రిక్స్",
+    "metrics.questions": "అడిగిన ప్రశ్నలు",
+    "metrics.fixed": "స్థిర ఫారం పొడవు (అభ్యర్థి పథకాలలో వేర్వేరు అంశాలు)",
+    "metrics.fixedAll": "అన్ని పథకాలు",
+    "metrics.saved": "తగ్గిన ప్రశ్నలు",
+    "metrics.time": "ఫలితానికి పట్టిన సమయం",
+    "metrics.size": "నియమాల డేటా పరిమాణం",
+    "metrics.net": "యాప్ చేసిన నెట్‌వర్క్ అభ్యర్థనలు",
+    "metrics.na": "ఇంకా లేదు",
+    "metrics.note": "ఈ బ్రౌజర్ సెషన్‌లో నేరుగా కొలిచినవి. మొదటి ప్రశ్న నుండి ఫలితాల స్క్రీన్ వరకు సమయం లెక్కించబడుతుంది.",
+    "voice.toggle": "వాయిస్",
+    "voice.notice": "వాయిస్ ఆన్ చేసే ముందు: కొన్ని బ్రౌజర్లలో స్పీచ్ రికగ్నిషన్ మీ ఆడియోను బ్రౌజర్ కంపెనీ సర్వర్లకు (ఉదా. గూగుల్ లేదా యాపిల్) పంపుతుంది. ఈ యాప్ కోడ్ ఏదీ పంపదు, కానీ బ్రౌజర్ స్పీచ్ సేవను నియంత్రించలేదు. మీరు ఎప్పుడైనా టైప్ చేయవచ్చు లేదా నొక్కవచ్చు.",
+    "voice.enable": "అర్థమైంది, వాయిస్ ఆన్ చేయి",
+    "voice.cancel": "వద్దు",
+    "voice.on": "వాయిస్ ఆన్‌లో ఉంది",
+    "voice.off": "వాయిస్ ఆఫ్ చేయి",
+    "voice.mic": "వాయిస్‌తో సమాధానం",
+    "voice.listening": "వింటున్నాను...",
+    "voice.heard": "విన్నది: \"{t}\"",
+    "voice.unclear": "క్షమించండి, అర్థం కాలేదు. దయచేసి సమాధానాన్ని నొక్కండి.",
+    "voice.error": "వాయిస్ పని చేయలేదు. దయచేసి సమాధానాన్ని నొక్కండి.",
+    "voice.read": "చదివి వినిపించు"
+  },
+
+  hi: {
+    "app.title": "सेवा सहायक",
+    "app.tagline": "जानें कि आप किन सरकारी योजनाओं के पात्र हो सकते हैं और आवेदन के लिए तैयार हों।",
+    "disclaimer": "यह कॉलेज डिज़ाइन प्रोटोटाइप है। परिणाम सरल नियमों पर आधारित उदाहरण मात्र हैं, आधिकारिक सलाह नहीं। हमेशा आधिकारिक स्रोतों पर जाँच करें।",
+    "skip": "मुख्य सामग्री पर जाएँ",
+    "lang.label": "भाषा",
+    "size.label": "अक्षर का आकार",
+    "size.0": "अक्षर का आकार: सामान्य। बड़ा करने के लिए दबाएँ",
+    "size.1": "अक्षर का आकार: बड़ा। और बड़ा करने के लिए दबाएँ",
+    "size.2": "अक्षर का आकार: बहुत बड़ा। और बड़ा करने के लिए दबाएँ",
+    "size.3": "अक्षर का आकार: सबसे बड़ा, सरल लेआउट। सामान्य करने के लिए दबाएँ",
+    "more": "और",
+    "clear": "मेरी जानकारी मिटाएँ",
+    "clear.done": "आपकी जानकारी मिटा दी गई।",
+    "back": "पीछे",
+    "start.heading": "आज आप किस बारे में मदद चाहते हैं?",
+    "start.sub": "एक चुनें। इससे सिर्फ़ यह तय होता है कि पहले कौन सी योजनाएँ देखी जाएँ।",
+    "start.speak": "बोलें",
+    "start.intro": "सेवा सहायक में आपका स्वागत है। बताइए आप किस बारे में आए हैं। हम कुछ आसान सवाल पूछेंगे और आवेदन की तैयारी में मदद करेंगे।",
+    "privacy.title": "आपकी गोपनीयता",
+    "privacy.body": "आपके जवाब सिर्फ़ इस पेज की मेमोरी में रहते हैं। कुछ भी सेव नहीं होता, कोई खाता या ट्रैकिंग नहीं है। पेज बंद करने, \"मेरी जानकारी मिटाएँ\" दबाने, या 5 मिनट तक कुछ न करने पर सब मिट जाता है। हम आधार, बैंक या कोई अन्य पहचान संख्या नहीं माँगते। यह ऐप कुछ भी जमा नहीं करता और किसी सरकारी साइट पर लॉगिन नहीं करता।",
+    "q.number": "प्रश्न {n}",
+    "q.dontknow": "मुझे नहीं पता",
+    "q.next": "आगे",
+    "q.yes": "हाँ",
+    "q.no": "नहीं",
+    "q.numberLabel": "संख्या लिखें",
+    "q.error": "कृपया {min} से {max} के बीच की संख्या लिखें।",
+    "q.hint": "\"मुझे नहीं पता\" हमेशा एक ठीक जवाब है।",
+    "q.answered": "आपका जवाब: {a}",
+    "results.title": "आपके परिणाम",
+    "results.intro": "आपके जवाबों के आधार पर। ये केवल उदाहरण हैं।",
+    "status.ELIGIBLE": "संभवतः पात्र",
+    "status.NOT_ELIGIBLE": "पात्र नहीं",
+    "status.NEEDS_A_QUICK_CHECK": "जल्दी जाँच ज़रूरी",
+    "results.notEligible": "पात्र नहीं ({n})",
+    "results.why": "क्यों",
+    "results.next": "मेरे दस्तावेज़ तैयार करें",
+    "results.restart": "फिर से शुरू करें",
+    "why.met": "{label}: {answer}",
+    "why.failed": "{label}: आपने {answer} कहा, लेकिन इस योजना के लिए {need} चाहिए",
+    "why.unknown": "{label}: पुष्टि नहीं हुई ({need} चाहिए)",
+    "why.exclTriggered": "{label}: आपने {answer} कहा, जो इस योजना में मान्य नहीं है",
+    "why.exclUnknown": "{label}: पुष्टि नहीं हुई (इस योजना में \"हाँ\" मान्य नहीं है)",
+    "why.check": "आपको पता नहीं था, इसलिए इनकी पुष्टि नहीं हो सकी: {list}। स्थानीय कार्यालय या सीएससी (कॉमन सर्विस सेंटर) पर जल्दी जाँच से यह तय हो जाएगा।",
+    "need.yes": "हाँ",
+    "need.no": "नहीं",
+    "need.gte": "{n} या अधिक",
+    "need.lte": "{n} या कम",
+    "or": "या",
+    "answer.unknown": "पता नहीं",
+    "answer.yes": "हाँ",
+    "answer.no": "नहीं",
+    "docs.title": "दस्तावेज़ सूची",
+    "docs.intro": "ये उन योजनाओं के दस्तावेज़ हैं जो रद्द नहीं हुईं। बताइए आपके पास कौन से हैं।",
+    "docs.have": "मेरे पास है",
+    "docs.donthave": "मेरे पास नहीं है",
+    "docs.progress": "तैयार दस्तावेज़: {y} में से {x}",
+    "docs.where": "कहाँ से मिलेगा (स्थानीय रूप से जाँचें)",
+    "docs.for": "इनके लिए ज़रूरी: {list}",
+    "docs.none": "अभी किसी योजना के लिए दस्तावेज़ ज़रूरी नहीं हैं।",
+    "docs.more": "और {n} अन्य",
+    "summary.notEligibleCount": "पात्र नहीं: {n} योजनाएँ",
+    "docs.next": "मेरे रिकॉर्ड के नाम जाँचें",
+    "names.title": "नाम की जाँच",
+    "names.intro": "हर रिकॉर्ड पर जैसा छपा है वैसा ही अपना नाम लिखें। नामों का न मिलना आवेदन असफल होने का आम कारण है। कोई पहचान संख्या न लिखें। यह जाँच सिर्फ़ इसी डिवाइस पर होती है।",
+    "names.aadhaar": "आधार पर नाम",
+    "names.bank": "बैंक पासबुक पर नाम",
+    "names.land": "भूमि या आय रिकॉर्ड पर नाम",
+    "names.check": "नाम जाँचें",
+    "names.need2": "तुलना के लिए कम से कम दो नाम लिखें।",
+    "names.allOk": "आपके लिखे सभी नाम मेल खाते हैं।",
+    "names.pair": "{a} और {b}",
+    "names.skip": "सारांश पर जाएँ",
+    "names.next": "सारांश पर जाएँ",
+    "sev.ok": "ठीक",
+    "sev.warning": "चेतावनी",
+    "sev.fail": "असफल होने की संभावना",
+    "class.EXACT": "ये नाम बिल्कुल एक जैसे हैं।",
+    "class.FORMATTING_ONLY": "सिर्फ़ बड़े अक्षर, खाली जगह या चिह्नों का फ़र्क़ है। यह आमतौर पर ठीक है।",
+    "class.INITIAL_VS_FULL": "एक रिकॉर्ड में इनिशियल और दूसरे में पूरा नाम है। कुछ कार्यालय इसे अस्वीकार करते हैं।",
+    "class.ORDER_DIFFERS": "वही शब्द अलग क्रम में हैं। कुछ कार्यालय इसे अस्वीकार करते हैं।",
+    "class.SPELLING_VARIANT": "वर्तनी थोड़ी अलग है। कुछ कार्यालय इसे अस्वीकार करते हैं।",
+    "class.DIFFERENT": "ये नाम अलग दिखते हैं। आवेदन असफल होने की संभावना है।",
+    "class.cross": "नाम अलग-अलग लिपियों में लिखे हैं, इसलिए वर्तनी ध्यान से जाँचें।",
+    "fix.title": "कौन सा रिकॉर्ड सुधारें (स्थानीय रूप से जाँचें)",
+    "fix.aadhaar": "आधार: आधार अपडेट केंद्र",
+    "fix.bank": "बैंक पासबुक: आपकी बैंक शाखा (केवाईसी अपडेट)",
+    "fix.land": "भूमि या आय रिकॉर्ड: स्थानीय राजस्व कार्यालय",
+    "fix.hint": "आमतौर पर जो रिकॉर्ड बाकियों से अलग है उसे बदलना आसान होता है। कौन सा सही है यह स्थानीय रूप से जाँचें।",
+    "summary.title": "आवेदन सारांश",
+    "summary.answers": "आपके जवाब",
+    "summary.matched": "योजनाएँ",
+    "summary.docs": "दस्तावेज़",
+    "summary.names": "नाम की जाँच",
+    "summary.official": "आवेदन जमा करना आधिकारिक वेबसाइट पर होता है।",
+    "summary.copy": "सारांश कॉपी करें",
+    "summary.copied": "सारांश कॉपी हो गया।",
+    "summary.copyFail": "कॉपी नहीं हो सका। कृपया टेक्स्ट चुनकर कॉपी करें।",
+    "summary.print": "प्रिंट",
+    "summary.none": "कोई नहीं",
+    "summary.notChecked": "जाँच नहीं हुई",
+    "summary.have": "है",
+    "summary.missing": "अभी चाहिए",
+    "summary.generated": "सेवा सहायक (कॉलेज प्रोटोटाइप) से उदाहरण सारांश। यह आधिकारिक दस्तावेज़ नहीं है।",
+    "nav.start": "शुरू",
+    "nav.questions": "प्रश्न",
+    "nav.results": "परिणाम",
+    "nav.docs": "दस्तावेज़",
+    "nav.names": "नाम",
+    "nav.summary": "सारांश",
+    "helper.toggle": "सहायक मोड",
+    "helper.next": "अगला व्यक्ति",
+    "helper.count": "इस सत्र में मदद पाने वाले: {n}",
+    "idle.warn": "कोई गतिविधि नहीं। {s} सेकंड में आपकी जानकारी मिट जाएगी।",
+    "idle.keep": "मेरी जानकारी रखें",
+    "idle.wiped": "5 मिनट तक कोई गतिविधि न होने पर आपकी जानकारी मिटा दी गई।",
+    "metrics.toggle": "डेमो मेट्रिक्स",
+    "metrics.title": "डेमो मेट्रिक्स",
+    "metrics.questions": "पूछे गए प्रश्न",
+    "metrics.fixed": "निश्चित फ़ॉर्म की लंबाई (उम्मीदवार योजनाओं के अलग-अलग बिंदु)",
+    "metrics.fixedAll": "सभी योजनाएँ",
+    "metrics.saved": "बचाए गए प्रश्न",
+    "metrics.time": "परिणाम में लगा समय",
+    "metrics.size": "नियम डेटा का आकार",
+    "metrics.net": "ऐप द्वारा किए गए नेटवर्क अनुरोध",
+    "metrics.na": "अभी नहीं",
+    "metrics.note": "इसी ब्राउज़र सत्र में सीधे मापा गया। समय पहले प्रश्न से परिणाम स्क्रीन तक गिना जाता है।",
+    "voice.toggle": "आवाज़",
+    "voice.notice": "आवाज़ चालू करने से पहले: कुछ ब्राउज़रों में वाणी पहचान आपकी ऑडियो को ब्राउज़र कंपनी के सर्वर (जैसे गूगल या एप्पल) पर भेजती है। इस ऐप का अपना कोड कुछ नहीं भेजता, लेकिन ब्राउज़र की वाणी सेवा पर इसका नियंत्रण नहीं है। आप हमेशा टाइप या टैप कर सकते हैं।",
+    "voice.enable": "समझ गया, आवाज़ चालू करें",
+    "voice.cancel": "नहीं, धन्यवाद",
+    "voice.on": "आवाज़ चालू है",
+    "voice.off": "आवाज़ बंद करें",
+    "voice.mic": "आवाज़ से जवाब दें",
+    "voice.listening": "सुन रहा हूँ...",
+    "voice.heard": "सुना: \"{t}\"",
+    "voice.unclear": "क्षमा करें, समझ नहीं आया। कृपया कोई जवाब दबाएँ।",
+    "voice.error": "आवाज़ काम नहीं की। कृपया कोई जवाब दबाएँ।",
+    "voice.read": "पढ़कर सुनाएँ"
+  }
+};
+if (typeof module !== "undefined" && module.exports) module.exports = SS_I18N;
+
+</script>
+<script>
+/* Documents master list. "where" guidance is deliberately generic: check locally. */
+var SS_DOCS = [
+  {
+    id: "aadhaar",
+    name: { en: "Aadhaar card", te: "ఆధార్ కార్డు", hi: "आधार कार्ड" },
+    where: {
+      en: "If you do not have it or it needs updating, visit an Aadhaar enrolment or update centre. Check locally.",
+      te: "మీ దగ్గర లేకపోతే లేదా సవరణ అవసరమైతే, ఆధార్ నమోదు/సవరణ కేంద్రానికి వెళ్ళండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "यदि आपके पास नहीं है या सुधार चाहिए, तो आधार नामांकन/अपडेट केंद्र पर जाएँ। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "bank_passbook",
+    name: { en: "Bank passbook", te: "బ్యాంకు పాస్‌బుక్", hi: "बैंक पासबुक" },
+    where: {
+      en: "Ask your bank branch for a passbook or account statement. Check locally.",
+      te: "మీ బ్యాంకు శాఖలో పాస్‌బుక్ లేదా ఖాతా స్టేట్‌మెంట్ అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "अपनी बैंक शाखा से पासबुक या खाता विवरण माँगें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "land_record",
+    name: { en: "Land record", te: "భూమి రికార్డు", hi: "भूमि अभिलेख" },
+    where: {
+      en: "Land records are usually kept by the local revenue office. Check locally.",
+      te: "భూమి రికార్డులు సాధారణంగా స్థానిక రెవెన్యూ కార్యాలయంలో ఉంటాయి. స్థానికంగా తెలుసుకోండి.",
+      hi: "भूमि अभिलेख आमतौर पर स्थानीय राजस्व कार्यालय में होते हैं। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "age_proof",
+    name: { en: "Age proof", te: "వయస్సు రుజువు", hi: "आयु प्रमाण" },
+    where: {
+      en: "Documents such as a birth certificate or school certificate often work. Which ones are accepted differs, so check locally.",
+      te: "జనన ధృవపత్రం లేదా పాఠశాల సర్టిఫికేట్ వంటివి సాధారణంగా పనిచేస్తాయి. ఏవి చెల్లుతాయో మారుతుంది, స్థానికంగా తెలుసుకోండి.",
+      hi: "जन्म प्रमाण पत्र या स्कूल प्रमाण पत्र जैसे दस्तावेज़ अक्सर चलते हैं। कौन से मान्य हैं यह अलग-अलग है, स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "bpl_proof",
+    name: { en: "BPL proof (card or certificate)", te: "బీపీఎల్ రుజువు (కార్డు/సర్టిఫికేట్)", hi: "बीपीएल प्रमाण (कार्ड/प्रमाण पत्र)" },
+    where: {
+      en: "Usually issued through the local revenue, panchayat or municipal office. The name of the document differs by state. Check locally.",
+      te: "సాధారణంగా స్థానిక రెవెన్యూ, పంచాయతీ లేదా మునిసిపల్ కార్యాలయం ద్వారా ఇస్తారు. రాష్ట్రాన్ని బట్టి పేరు మారుతుంది. స్థానికంగా తెలుసుకోండి.",
+      hi: "आमतौर पर स्थानीय राजस्व, पंचायत या नगरपालिका कार्यालय से मिलता है। राज्य के अनुसार नाम अलग हो सकता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "spouse_death_certificate",
+    name: { en: "Spouse's death certificate", te: "జీవిత భాగస్వామి మరణ ధృవపత్రం", hi: "जीवनसाथी का मृत्यु प्रमाण पत्र" },
+    where: {
+      en: "Death certificates are issued through the local registrar of births and deaths (panchayat or municipality). Check locally.",
+      te: "మరణ ధృవపత్రాలు స్థానిక జనన-మరణ రిజిస్ట్రార్ (పంచాయతీ/మునిసిపాలిటీ) ద్వారా ఇస్తారు. స్థానికంగా తెలుసుకోండి.",
+      hi: "मृत्यु प्रमाण पत्र स्थानीय जन्म-मृत्यु पंजीयक (पंचायत/नगरपालिका) से मिलता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "disability_certificate",
+    name: { en: "Disability certificate", te: "వైకల్య ధృవపత్రం", hi: "दिव्यांगता प्रमाण पत्र" },
+    where: {
+      en: "Issued after assessment by an authorised medical board or hospital. Ask at the district health or welfare office. Check locally.",
+      te: "అధీకృత వైద్య బోర్డు లేదా ఆసుపత్రి పరీక్ష తర్వాత ఇస్తారు. జిల్లా ఆరోగ్య/సంక్షేమ కార్యాలయంలో అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "अधिकृत मेडिकल बोर्ड या अस्पताल की जाँच के बाद मिलता है। ज़िला स्वास्थ्य/कल्याण कार्यालय में पूछें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "ration_card",
+    name: { en: "Ration card", te: "రేషన్ కార్డు", hi: "राशन कार्ड" },
+    where: {
+      en: "Ration cards are issued by the state food and civil supplies department. Ask at the local ration office. Check locally.",
+      te: "రేషన్ కార్డులను రాష్ట్ర ఆహార, పౌర సరఫరాల శాఖ ఇస్తుంది. స్థానిక రేషన్ కార్యాలయంలో అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "राशन कार्ड राज्य के खाद्य एवं नागरिक आपूर्ति विभाग द्वारा जारी होते हैं। स्थानीय राशन कार्यालय में पूछें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "income_certificate",
+    name: { en: "Income certificate", te: "ఆదాయ ధృవపత్రం", hi: "आय प्रमाण पत्र" },
+    where: {
+      en: "Usually issued by the local revenue office. Check locally.",
+      te: "సాధారణంగా స్థానిక రెవెన్యూ కార్యాలయం ఇస్తుంది. స్థానికంగా తెలుసుకోండి.",
+      hi: "आमतौर पर स्थानीय राजस्व कार्यालय जारी करता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "caste_certificate",
+    name: { en: "Caste or community certificate", te: "కుల/సామాజిక వర్గ ధృవపత్రం", hi: "जाति/समुदाय प्रमाण पत्र" },
+    where: {
+      en: "Usually issued by the local revenue office. Check locally.",
+      te: "సాధారణంగా స్థానిక రెవెన్యూ కార్యాలయం ఇస్తుంది. స్థానికంగా తెలుసుకోండి.",
+      hi: "आमतौर पर स्थानीय राजस्व कार्यालय जारी करता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "student_proof",
+    name: { en: "Student proof (bonafide or admission record)", te: "విద్యార్థి రుజువు (బోనఫైడ్ లేదా ప్రవేశ రికార్డు)", hi: "छात्र प्रमाण (बोनाफाइड या प्रवेश रिकॉर्ड)" },
+    where: {
+      en: "Ask your school or college office. Check locally.",
+      te: "మీ పాఠశాల లేదా కళాశాల కార్యాలయంలో అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "अपने स्कूल या कॉलेज कार्यालय से पूछें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "marksheet",
+    name: { en: "Last exam marksheet", te: "చివరి పరీక్ష మార్కుల జాబితా", hi: "पिछली परीक्षा की अंकतालिका" },
+    where: {
+      en: "Ask your school or college office. Check locally.",
+      te: "మీ పాఠశాల లేదా కళాశాల కార్యాలయంలో అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "अपने स्कूल या कॉलेज कार्यालय से पूछें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "mch_card",
+    name: { en: "Pregnancy or mother-child health card", te: "గర్భిణి లేదా తల్లి-బిడ్డ ఆరోగ్య కార్డు", hi: "गर्भावस्था या मातृ-शिशु स्वास्थ्य कार्ड" },
+    where: {
+      en: "Registered at your nearest government health centre or anganwadi. Check locally.",
+      te: "సమీప ప్రభుత్వ ఆరోగ్య కేంద్రం లేదా అంగన్‌వాడీలో నమోదు చేస్తారు. స్థానికంగా తెలుసుకోండి.",
+      hi: "नज़दीकी सरकारी स्वास्थ्य केंद्र या आंगनवाड़ी में पंजीकरण होता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "child_birth_certificate",
+    name: { en: "Girl child's birth certificate", te: "ఆడపిల్ల జనన ధృవపత్రం", hi: "बेटी का जन्म प्रमाण पत्र" },
+    where: {
+      en: "Birth certificates are issued through the local registrar of births and deaths (panchayat or municipality). Check locally.",
+      te: "జనన ధృవపత్రాలు స్థానిక జనన-మరణ రిజిస్ట్రార్ (పంచాయతీ/మునిసిపాలిటీ) ద్వారా ఇస్తారు. స్థానికంగా తెలుసుకోండి.",
+      hi: "जन्म प्रमाण पत्र स्थानीय जन्म-मृत्यु पंजीयक (पंचायत/नगरपालिका) से मिलता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "business_plan",
+    name: { en: "Simple business plan", te: "సరళమైన వ్యాపార ప్రణాళిక", hi: "सरल व्यवसाय योजना" },
+    where: {
+      en: "You usually write this yourself; a CSC or bank can help. Check locally.",
+      te: "ఇది సాధారణంగా మీరే రాస్తారు; సీఎస్‌సీ లేదా బ్యాంకు సహాయం చేయవచ్చు. స్థానికంగా తెలుసుకోండి.",
+      hi: "आमतौर पर आप खुद लिखते हैं; सीएससी या बैंक मदद कर सकते हैं। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "address_proof",
+    name: { en: "Address proof", te: "చిరునామా రుజువు", hi: "पते का प्रमाण" },
+    where: {
+      en: "Documents such as a ration card or a utility bill are often accepted. Which ones are accepted differs, so check locally.",
+      te: "రేషన్ కార్డు లేదా యుటిలిటీ బిల్లు వంటివి సాధారణంగా చెల్లుతాయి. ఏవి చెల్లుతాయో మారుతుంది, స్థానికంగా తెలుసుకోండి.",
+      hi: "राशन कार्ड या बिजली-पानी का बिल जैसे दस्तावेज़ अक्सर चलते हैं। कौन से मान्य हैं यह अलग है, स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "electricity_bill",
+    name: { en: "Recent electricity bill", te: "తాజా విద్యుత్ బిల్లు", hi: "हाल का बिजली बिल" },
+    where: {
+      en: "Ask your electricity provider's office for a copy. Check locally.",
+      te: "మీ విద్యుత్ సరఫరా కార్యాలయంలో కాపీ అడగండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "अपने बिजली कंपनी के कार्यालय से प्रति माँगें। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "property_proof",
+    name: { en: "House ownership proof", te: "ఇంటి యాజమాన్య రుజువు", hi: "घर के स्वामित्व का प्रमाण" },
+    where: {
+      en: "Usually from the local registration, municipal or panchayat office. Check locally.",
+      te: "సాధారణంగా స్థానిక రిజిస్ట్రేషన్, మునిసిపల్ లేదా పంచాయతీ కార్యాలయం నుండి. స్థానికంగా తెలుసుకోండి.",
+      hi: "आमतौर पर स्थानीय पंजीकरण, नगरपालिका या पंचायत कार्यालय से। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "death_certificate_family",
+    name: { en: "Death certificate of the earning family member", te: "సంపాదనాపరుడైన కుటుంబ సభ్యుని మరణ ధృవపత్రం", hi: "कमाने वाले परिवार सदस्य का मृत्यु प्रमाण पत्र" },
+    where: {
+      en: "Death certificates are issued through the local registrar of births and deaths (panchayat or municipality). Check locally.",
+      te: "మరణ ధృవపత్రాలు స్థానిక జనన-మరణ రిజిస్ట్రార్ (పంచాయతీ/మునిసిపాలిటీ) ద్వారా ఇస్తారు. స్థానికంగా తెలుసుకోండి.",
+      hi: "मृत्यु प्रमाण पत्र स्थानीय जन्म-मृत्यु पंजीयक (पंचायत/नगरपालिका) से मिलता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "job_card",
+    name: { en: "Job card (rural employment)", te: "ఉపాధి జాబ్ కార్డు", hi: "जॉब कार्ड (ग्रामीण रोज़गार)" },
+    where: {
+      en: "Applied for at the local gram panchayat. Check locally.",
+      te: "స్థానిక గ్రామ పంచాయతీలో దరఖాస్తు చేస్తారు. స్థానికంగా తెలుసుకోండి.",
+      hi: "स्थानीय ग्राम पंचायत में आवेदन किया जाता है। स्थानीय रूप से जाँचें।"
+    }
+  },
+  {
+    id: "vendor_proof",
+    name: { en: "Street vendor proof (vending certificate or letter)", te: "వీధి వ్యాపారి రుజువు (వెండింగ్ సర్టిఫికేట్ లేదా లేఖ)", hi: "फेरीवाले का प्रमाण (वेंडिंग प्रमाण पत्र या पत्र)" },
+    where: {
+      en: "Issued by the local municipal body. Check locally.",
+      te: "స్థానిక మునిసిపల్ సంస్థ ఇస్తుంది. స్థానికంగా తెలుసుకోండి.",
+      hi: "स्थानीय नगर निकाय जारी करता है। स्थानीय रूप से जाँचें।"
+    }
+  }
+];
+if (typeof module !== "undefined" && module.exports) module.exports = SS_DOCS;
+
+</script>
+<script>
+/*
+ * SAMPLE DATABASE: 50 national schemes.
+ *
+ * ALL rules below are demo-simplified, verify against official guidelines.
+ * They were drafted from general knowledge, NOT checked line by line against the official scheme pages, and the real
+ * criteria and amounts change with time and vary by state. Nothing here is official advice. Every scheme is
+ * therefore listed as UNVERIFIED in SCHEMES_SAMPLE.csv until a team member checks it.
+ * No amounts, deadlines, helplines or scheme-specific URLs are included on purpose.
+ *
+ * Condition shapes:
+ *   { attr, op: "eq"|"gte"|"lte", value }
+ *   { op: "or", conds: [ ...conditions ] }   (true if any sub-condition is true)
+ * required: all must be true. exclusions: none may be true.
+ * household_income_lakh is the household's yearly income in lakh rupees, rounded UP to a whole lakh.
+ */
+var SS_SCHEMES = (function () {
+  "use strict";
+  var NOTE = "demo-simplified, verify against official guidelines";
+  function T(en, te, hi) { return { en: en, te: te, hi: hi }; }
+  function eq(attr, value) { return { attr: attr, op: "eq", value: value }; }
+  function gte(attr, value) { return { attr: attr, op: "gte", value: value }; }
+  function lte(attr, value) { return { attr: attr, op: "lte", value: value }; }
+  function or() { return { op: "or", conds: [].slice.call(arguments) }; }
+  function S(id, tags, name, benefit, required, exclusions, documents) {
+    return { id: id, name: name, benefit: benefit, tags: tags, official_note: NOTE, required: required, exclusions: exclusions, documents: documents };
+  }
+
+  return [
+    /* ---- core five (original demo set) ---- */
+    S("pm_kisan", ["farming"],
+      T("PM-KISAN", "పీఎం-కిసాన్", "पीएम-किसान"),
+      T("Income support for farmer families who hold farmland.", "వ్యవసాయ భూమి ఉన్న రైతు కుటుంబాలకు ఆదాయ సహాయం.", "कृषि भूमि वाले किसान परिवारों को आय सहायता।"),
+      [eq("farmer_with_land", true)],
+      [eq("income_tax_payer", true), eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("ignwps", ["spouse"],
+      T("Indira Gandhi National Widow Pension Scheme", "ఇందిరా గాంధీ జాతీయ వితంతు పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय विधवा पेंशन योजना"),
+      T("Monthly pension for widows from poor households.", "పేద కుటుంబాల వితంతువులకు నెలవారీ పింఛను.", "गरीब परिवारों की विधवाओं के लिए मासिक पेंशन।"),
+      [eq("gender", "female"), eq("widowed", true), gte("age", 40), lte("age", 79), eq("bpl", true)],
+      [],
+      ["aadhaar", "age_proof", "bpl_proof", "spouse_death_certificate", "bank_passbook"]),
+    S("ignoaps", ["old_age"],
+      T("Indira Gandhi National Old Age Pension Scheme", "ఇందిరా గాంధీ జాతీయ వృద్ధాప్య పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय वृद्धावस्था पेंशन योजना"),
+      T("Monthly pension for older adults from poor households.", "పేద కుటుంబాల వృద్ధులకు నెలవారీ పింఛను.", "गरीब परिवारों के बुज़ुर्गों के लिए मासिक पेंशन।"),
+      [gte("age", 60), eq("bpl", true)],
+      [],
+      ["aadhaar", "age_proof", "bpl_proof", "bank_passbook"]),
+    S("igndps", ["disability"],
+      T("Indira Gandhi National Disability Pension Scheme", "ఇందిరా గాంధీ జాతీయ వికలాంగ పింఛను పథకం", "इंदिरा गांधी राष्ट्रीय दिव्यांगता पेंशन योजना"),
+      T("Monthly pension for persons with severe disability from poor households.", "పేద కుటుంబాల్లో తీవ్ర వైకల్యం ఉన్నవారికి నెలవారీ పింఛను.", "गरीब परिवारों के गंभीर दिव्यांग व्यक्तियों के लिए मासिक पेंशन।"),
+      [eq("disability_80_plus", true), gte("age", 18), lte("age", 79), eq("bpl", true)],
+      [],
+      ["aadhaar", "disability_certificate", "bpl_proof", "bank_passbook"]),
+    S("pmjay", ["health", "old_age"],
+      T("Ayushman Bharat PM-JAY", "ఆయుష్మాన్ భారత్ పీఎం-జేఏవై", "आयुष्मान भारत पीएम-जेएवाई"),
+      T("Health cover for hospital treatment for eligible families.", "అర్హత ఉన్న కుటుంబాలకు ఆసుపత్రి చికిత్సకు ఆరోగ్య బీమా.", "पात्र परिवारों के लिए अस्पताल में इलाज का स्वास्थ्य कवर।"),
+      [or(gte("age", 70), eq("pmjay_listed", true))],
+      [],
+      ["aadhaar", "ration_card"]),
+
+    /* ---- family and farming ---- */
+    S("nfbs", ["spouse"],
+      T("National Family Benefit Scheme", "జాతీయ కుటుంబ ప్రయోజన పథకం", "राष्ट्रीय परिवार लाभ योजना"),
+      T("One-time help to a poor family when the main earning member dies.", "ప్రధాన సంపాదనాపరుడు మరణించినప్పుడు పేద కుటుంబానికి ఒకసారి ఆర్థిక సహాయం.", "मुख्य कमाने वाले सदस्य की मृत्यु पर गरीब परिवार को एकमुश्त सहायता।"),
+      [eq("breadwinner_died", true), eq("bpl", true)], [],
+      ["aadhaar", "death_certificate_family", "bpl_proof", "bank_passbook"]),
+    S("pmkmy", ["farming", "old_age"],
+      T("PM Kisan Maan-Dhan Yojana (farmer pension)", "పీఎం కిసాన్ మాన్-ధన్ యోజన (రైతు పింఛను)", "पीएम किसान मान-धन योजना (किसान पेंशन)"),
+      T("Pension in old age for small farmers who join while young.", "చిన్న రైతులు చిన్న వయస్సులో చేరితే వృద్ధాప్యంలో పింఛను.", "छोटे किसानों को कम उम्र में जुड़ने पर बुढ़ापे में पेंशन।"),
+      [eq("farmer_with_land", true), gte("age", 18), lte("age", 40)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("pmfby", ["farming"],
+      T("PM Fasal Bima Yojana (crop insurance)", "పీఎం ఫసల్ బీమా యోజన (పంట బీమా)", "पीएम फसल बीमा योजना (फसल बीमा)"),
+      T("Insurance cover against crop loss from natural causes.", "ప్రకృతి కారణాల వల్ల పంట నష్టానికి బీమా రక్షణ.", "प्राकृतिक कारणों से फसल नुकसान पर बीमा सुरक्षा।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "bank_passbook", "land_record"]),
+    S("kcc", ["farming", "money"],
+      T("Kisan Credit Card", "కిసాన్ క్రెడిట్ కార్డు", "किसान क्रेडिट कार्ड"),
+      T("Easy short-term farm credit for farmers.", "రైతులకు సులభమైన స్వల్పకాలిక వ్యవసాయ రుణం.", "किसानों के लिए आसान अल्पकालिक कृषि ऋण।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record", "bank_passbook"]),
+    S("shc", ["farming"],
+      T("Soil Health Card Scheme", "మృత్తిక ఆరోగ్య కార్డు పథకం", "मृदा स्वास्थ्य कार्ड योजना"),
+      T("Soil test report with advice on the right fertiliser for your land.", "మీ భూమికి సరైన ఎరువులపై సలహాతో మట్టి పరీక్ష నివేదిక.", "आपकी ज़मीन के लिए सही खाद की सलाह के साथ मिट्टी जाँच रिपोर्ट।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record"]),
+    S("pmkusum", ["farming"],
+      T("PM-KUSUM (solar pumps for farmers)", "పీఎం-కుసుమ్ (రైతులకు సోలార్ పంపులు)", "पीएम-कुसुम (किसानों के लिए सोलर पंप)"),
+      T("Support to install solar pumps on farmland.", "వ్యవసాయ భూమిలో సోలార్ పంపులు ఏర్పాటుకు సహాయం.", "खेत में सोलर पंप लगाने में सहायता।"),
+      [eq("farmer_with_land", true)], [],
+      ["aadhaar", "land_record", "bank_passbook"]),
+
+    /* ---- housing and home ---- */
+    S("mgnrega", ["work"],
+      T("MGNREGA (rural work guarantee)", "ఉపాధి హామీ పథకం (ఎంజీఎన్‌ఆర్‌ఈజీఏ)", "मनरेगा (ग्रामीण रोज़गार गारंटी)"),
+      T("Paid unskilled manual work for rural households that ask for it.", "అడిగిన గ్రామీణ కుటుంబాలకు జీతంతో కూడిన నైపుణ్యం అవసరం లేని పని.", "माँग करने वाले ग्रामीण परिवारों को मज़दूरी के साथ अकुशल कार्य।"),
+      [eq("rural", true), gte("age", 18)], [],
+      ["aadhaar", "address_proof", "bank_passbook", "job_card"]),
+    S("pmay_g", ["housing"],
+      T("PM Awas Yojana - Gramin (rural housing)", "పీఎం ఆవాస్ యోజన - గ్రామీణ్ (గ్రామీణ గృహాలు)", "पीएम आवास योजना - ग्रामीण"),
+      T("Help to build a pucca house for rural families without one.", "పక్కా ఇల్లు లేని గ్రామీణ కుటుంబాలకు ఇల్లు కట్టుకోవడానికి సహాయం.", "पक्का मकान न रखने वाले ग्रामीण परिवारों को घर बनाने में सहायता।"),
+      [eq("rural", true), eq("owns_pucca_house", false), eq("bpl", true)], [],
+      ["aadhaar", "bank_passbook", "bpl_proof", "address_proof"]),
+    S("pmay_u", ["housing"],
+      T("PM Awas Yojana - Urban (city housing)", "పీఎం ఆవాస్ యోజన - అర్బన్ (పట్టణ గృహాలు)", "पीएम आवास योजना - शहरी"),
+      T("Support to buy or build a first home for urban families without a pucca house.", "పక్కా ఇల్లు లేని పట్టణ కుటుంబాలకు మొదటి ఇల్లు కొనడానికి లేదా కట్టడానికి సహాయం.", "पक्का मकान न रखने वाले शहरी परिवारों को पहला घर खरीदने या बनाने में सहायता।"),
+      [eq("rural", false), eq("owns_pucca_house", false), lte("household_income_lakh", 18)], [],
+      ["aadhaar", "income_certificate", "address_proof", "bank_passbook"]),
+    S("surya_ghar", ["housing"],
+      T("PM Surya Ghar (rooftop solar)", "పీఎం సూర్య ఘర్ (ఇంటిపై సోలార్)", "पीएम सूर्य घर (छत पर सोलर)"),
+      T("Support to put solar panels on the roof of your own house and cut electricity bills.", "మీ సొంత ఇంటి పైకప్పుపై సోలార్ ప్యానెల్స్ పెట్టుకుని విద్యుత్ బిల్లు తగ్గించుకోవడానికి సహాయం.", "अपने घर की छत पर सोलर पैनल लगाकर बिजली बिल घटाने में सहायता।"),
+      [eq("owns_pucca_house", true)], [],
+      ["aadhaar", "electricity_bill", "property_proof", "bank_passbook"]),
+    S("sbmg", ["housing", "health"],
+      T("Swachh Bharat Mission - Gramin (household toilet)", "స్వచ్ఛ భారత్ మిషన్ - గ్రామీణ్ (ఇంటి మరుగుదొడ్డి)", "स्वच्छ भारत मिशन - ग्रामीण (घरेलू शौचालय)"),
+      T("Support to build a toilet at home for rural households without one.", "మరుగుదొడ్డి లేని గ్రామీణ కుటుంబాలకు ఇంట్లో నిర్మించుకోవడానికి సహాయం.", "शौचालय न रखने वाले ग्रामीण परिवारों को घर में शौचालय बनाने में सहायता।"),
+      [eq("rural", true), eq("has_toilet", false)], [],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+
+    /* ---- women, money and insurance ---- */
+    S("ujjwala", ["women"],
+      T("PM Ujjwala Yojana (LPG connection)", "పీఎం ఉజ్జ్వల యోజన (ఎల్‌పీజీ కనెక్షన్)", "पीएम उज्ज्वला योजना (एलपीजी कनेक्शन)"),
+      T("Support to get a cooking gas connection for women from poor households.", "పేద కుటుంబాల మహిళలకు వంట గ్యాస్ కనెక్షన్ పొందడానికి సహాయం.", "गरीब परिवारों की महिलाओं को रसोई गैस कनेक्शन दिलाने में सहायता।"),
+      [eq("gender", "female"), gte("age", 18), eq("bpl", true), eq("has_lpg", false)], [],
+      ["aadhaar", "bpl_proof", "bank_passbook", "address_proof", "ration_card"]),
+    S("pmjdy", ["money"],
+      T("PM Jan Dhan Yojana (bank account)", "పీఎం జన్ ధన్ యోజన (బ్యాంకు ఖాతా)", "पीएम जन धन योजना (बैंक खाता)"),
+      T("A basic bank account for people who do not have one.", "ఖాతా లేనివారికి ప్రాథమిక బ్యాంకు ఖాతా.", "जिनका खाता नहीं है उनके लिए बुनियादी बैंक खाता।"),
+      [eq("has_bank_account", false), gte("age", 10)], [],
+      ["aadhaar", "address_proof"]),
+    S("pmjjby", ["money"],
+      T("PM Jeevan Jyoti Bima Yojana (life insurance)", "పీఎం జీవన్ జ్యోతి బీమా యోజన (జీవిత బీమా)", "पीएम जीवन ज्योति बीमा योजना (जीवन बीमा)"),
+      T("Low-cost life insurance cover renewed every year.", "ప్రతి సంవత్సరం పునరుద్ధరించే తక్కువ ఖర్చుతో జీవిత బీమా.", "हर साल नवीनीकृत होने वाला कम लागत का जीवन बीमा।"),
+      [gte("age", 18), lte("age", 50), eq("has_bank_account", true)], [],
+      ["aadhaar", "bank_passbook"]),
+    S("pmsby", ["money"],
+      T("PM Suraksha Bima Yojana (accident insurance)", "పీఎం సురక్ష బీమా యోజన (ప్రమాద బీమా)", "पीएम सुरक्षा बीमा योजना (दुर्घटना बीमा)"),
+      T("Low-cost accident insurance cover renewed every year.", "ప్రతి సంవత్సరం పునరుద్ధరించే తక్కువ ఖర్చుతో ప్రమాద బీమా.", "हर साल नवीनीकृत होने वाला कम लागत का दुर्घटना बीमा।"),
+      [gte("age", 18), lte("age", 70), eq("has_bank_account", true)], [],
+      ["aadhaar", "bank_passbook"]),
+    S("apy", ["money", "old_age"],
+      T("Atal Pension Yojana", "అటల్ పెన్షన్ యోజన", "अटल पेंशन योजना"),
+      T("Regular pension after 60 for people who save a small amount every month.", "ప్రతి నెల కొద్దిగా పొదుపు చేసినవారికి 60 ఏళ్ల తర్వాత క్రమం తప్పని పింఛను.", "हर महीने थोड़ी बचत करने वालों को 60 साल के बाद नियमित पेंशन।"),
+      [gte("age", 18), lte("age", 40), eq("has_bank_account", true)],
+      [eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("ssy", ["women", "money"],
+      T("Sukanya Samriddhi Yojana (girl child savings)", "సుకన్య సమృద్ధి యోజన (ఆడపిల్లల పొదుపు)", "सुकन्या समृद्धि योजना (बेटी की बचत)"),
+      T("A savings account for a girl child's future education and marriage.", "ఆడపిల్ల భవిష్యత్ చదువు, వివాహం కోసం పొదుపు ఖాతా.", "बेटी की भविष्य की पढ़ाई और शादी के लिए बचत खाता।"),
+      [eq("girl_child_under_10", true)], [],
+      ["aadhaar", "child_birth_certificate", "address_proof"]),
+    S("pmmvy", ["women", "health"],
+      T("PM Matru Vandana Yojana (maternity support)", "పీఎం మాతృ వందన యోజన (ప్రసూతి సహాయం)", "पीएम मातृ वंदना योजना (मातृत्व सहायता)"),
+      T("Cash support for pregnant and nursing mothers.", "గర్భిణులు, పాలిచ్చే తల్లులకు నగదు సహాయం.", "गर्भवती और स्तनपान कराने वाली माताओं को नकद सहायता।"),
+      [eq("pregnant_or_new_mother", true), gte("age", 19)],
+      [eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "mch_card", "bank_passbook"]),
+    S("jsy", ["women", "health"],
+      T("Janani Suraksha Yojana (safe delivery)", "జననీ సురక్ష యోజన (సురక్షిత ప్రసవం)", "जननी सुरक्षा योजना (सुरक्षित प्रसव)"),
+      T("Support for delivering at a government or accredited health facility.", "ప్రభుత్వ లేదా గుర్తింపు పొందిన ఆరోగ్య కేంద్రంలో ప్రసవానికి సహాయం.", "सरकारी या मान्यता प्राप्त स्वास्थ्य केंद्र में प्रसव के लिए सहायता।"),
+      [eq("pregnant_or_new_mother", true), eq("bpl", true)], [],
+      ["aadhaar", "mch_card", "bpl_proof", "bank_passbook"]),
+    S("nfsa", ["money"],
+      T("Subsidised ration (National Food Security Act)", "రాయితీ రేషన్ (జాతీయ ఆహార భద్రతా చట్టం)", "सब्सिडी वाला राशन (राष्ट्रीय खाद्य सुरक्षा अधिनियम)"),
+      T("Subsidised or free foodgrain every month for eligible households.", "అర్హత ఉన్న కుటుంబాలకు ప్రతి నెల రాయితీ లేదా ఉచిత ధాన్యం.", "पात्र परिवारों को हर महीने सब्सिडी वाला या मुफ़्त अनाज।"),
+      [eq("bpl", true)], [],
+      ["aadhaar", "ration_card", "address_proof", "income_certificate"]),
+
+    /* ---- work, skills and business ---- */
+    S("pmsym", ["work", "old_age"],
+      T("PM Shram Yogi Maan-Dhan (worker pension)", "పీఎం శ్రమ యోగి మాన్-ధన్ (కార్మికుల పింఛను)", "पीएम श्रम योगी मान-धन (श्रमिक पेंशन)"),
+      T("Old-age pension for unorganised workers who join while young.", "చిన్న వయస్సులో చేరే అసంఘటిత కార్మికులకు వృద్ధాప్య పింఛను.", "कम उम्र में जुड़ने वाले असंगठित श्रमिकों को वृद्धावस्था पेंशन।"),
+      [eq("informal_worker", true), gte("age", 18), lte("age", 40)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("eshram", ["work"],
+      T("e-Shram (unorganised worker registration)", "ఈ-శ్రమ్ (అసంఘటిత కార్మికుల నమోదు)", "ई-श्रम (असंगठित श्रमिक पंजीकरण)"),
+      T("Registration for unorganised workers that opens access to welfare benefits.", "అసంఘటిత కార్మికులకు సంక్షేమ ప్రయోజనాలు అందేలా చేసే నమోదు.", "असंगठित श्रमिकों के लिए पंजीकरण जो कल्याण लाभों तक पहुँच देता है।"),
+      [eq("informal_worker", true), gte("age", 16), lte("age", 59)],
+      [eq("epf_member", true), eq("income_tax_payer", true)],
+      ["aadhaar", "bank_passbook"]),
+    S("svanidhi", ["work", "money"],
+      T("PM SVANidhi (street vendor loan)", "పీఎం స్వనిధి (వీధి వ్యాపారుల రుణం)", "पीएम स्वनिधि (फेरीवाला ऋण)"),
+      T("Small working-capital loan for street vendors.", "వీధి వ్యాపారులకు చిన్న వర్కింగ్ క్యాపిటల్ రుణం.", "फेरीवालों के लिए छोटा कार्यशील पूँजी ऋण।"),
+      [eq("street_vendor", true)], [],
+      ["aadhaar", "vendor_proof", "bank_passbook"]),
+    S("mudra", ["work", "money"],
+      T("PM Mudra Yojana (small business loan)", "పీఎం ముద్ర యోజన (చిన్న వ్యాపార రుణం)", "पीएम मुद्रा योजना (छोटा व्यवसाय ऋण)"),
+      T("Loans for small businesses without needing collateral.", "హామీ అవసరం లేకుండా చిన్న వ్యాపారాలకు రుణాలు.", "बिना गारंटी के छोटे व्यवसायों के लिए ऋण।"),
+      [eq("own_business", true), gte("age", 18)], [],
+      ["aadhaar", "address_proof", "business_plan", "bank_passbook"]),
+    S("standup", ["work", "women"],
+      T("Stand-Up India (loan for SC/ST or women entrepreneurs)", "స్టాండ్-అప్ ఇండియా (ఎస్‌సీ/ఎస్‌టీ లేదా మహిళా వ్యాపారవేత్తలకు రుణం)", "स्टैंड-अप इंडिया (एससी/एसटी या महिला उद्यमियों के लिए ऋण)"),
+      T("Bank loans to start a new business for SC/ST or women entrepreneurs.", "ఎస్‌సీ/ఎస్‌టీ లేదా మహిళా వ్యాపారవేత్తలకు కొత్త వ్యాపారం ప్రారంభించడానికి బ్యాంకు రుణాలు.", "एससी/एसटी या महिला उद्यमियों को नया व्यवसाय शुरू करने के लिए बैंक ऋण।"),
+      [eq("own_business", true), gte("age", 18), or(eq("sc_st", true), eq("gender", "female"))], [],
+      ["aadhaar", "caste_certificate", "business_plan", "address_proof", "bank_passbook"]),
+    S("pmegp", ["work"],
+      T("PMEGP (new enterprise subsidy)", "పీఎంఈజీపీ (కొత్త సంస్థకు సబ్సిడీ)", "पीएमईजीपी (नई इकाई के लिए सब्सिडी)"),
+      T("Subsidy-linked bank loan to set up a new small enterprise.", "కొత్త చిన్న సంస్థ ఏర్పాటుకు సబ్సిడీతో కూడిన బ్యాంకు రుణం.", "नई छोटी इकाई शुरू करने के लिए सब्सिडी वाला बैंक ऋण।"),
+      [eq("own_business", true), gte("age", 18)], [],
+      ["aadhaar", "business_plan", "address_proof", "bank_passbook"]),
+    S("vishwakarma", ["work"],
+      T("PM Vishwakarma (traditional artisans)", "పీఎం విశ్వకర్మ (సంప్రదాయ కళాకారులు)", "पीएम विश्वकर्मा (पारंपरिक कारीगर)"),
+      T("Skill training, toolkit support and low-cost credit for traditional artisans.", "సంప్రదాయ కళాకారులకు నైపుణ్య శిక్షణ, పనిముట్ల సహాయం, తక్కువ వడ్డీ రుణం.", "पारंपरिक कारीगरों के लिए कौशल प्रशिक्षण, औज़ार सहायता और सस्ता ऋण।"),
+      [eq("artisan", true), gte("age", 18)],
+      [eq("govt_service_or_pensioner", true)],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+    S("pmkvy", ["work", "education"],
+      T("PM Kaushal Vikas Yojana (skill training)", "పీఎం కౌశల్ వికాస్ యోజన (నైపుణ్య శిక్షణ)", "पीएम कौशल विकास योजना (कौशल प्रशिक्षण)"),
+      T("Short-term skill training courses with a certificate.", "సర్టిఫికేట్‌తో కూడిన స్వల్పకాలిక నైపుణ్య శిక్షణ కోర్సులు.", "प्रमाण पत्र के साथ अल्पकालिक कौशल प्रशिक्षण पाठ्यक्रम।"),
+      [gte("age", 15), lte("age", 45)], [],
+      ["aadhaar", "bank_passbook", "marksheet"]),
+    S("ddugky", ["work"],
+      T("DDU-GKY (rural youth skills and jobs)", "డీడీయూ-జీకేవై (గ్రామీణ యువత నైపుణ్యం, ఉద్యోగాలు)", "डीडीयू-जीकेवाई (ग्रामीण युवा कौशल और रोज़गार)"),
+      T("Skill training with job placement help for poor rural youth.", "పేద గ్రామీణ యువతకు ఉద్యోగ సహాయంతో నైపుణ్య శిక్షణ.", "गरीब ग्रामीण युवाओं के लिए नौकरी दिलाने में मदद के साथ कौशल प्रशिक्षण।"),
+      [eq("rural", true), eq("bpl", true), gte("age", 15), lte("age", 35)], [],
+      ["aadhaar", "bpl_proof", "marksheet", "bank_passbook"]),
+    S("nrlm", ["women", "work"],
+      T("DAY-NRLM (women's self-help groups)", "డీఏవై-ఎన్‌ఆర్‌ఎల్‌ఎం (మహిళా స్వయం సహాయక సంఘాలు)", "डीएवाई-एनआरएलएम (महिला स्वयं सहायता समूह)"),
+      T("Join a women's self-help group for savings, loans and livelihood support.", "పొదుపు, రుణాలు, జీవనోపాధి సహాయం కోసం మహిళా స్వయం సహాయక సంఘంలో చేరండి.", "बचत, ऋण और आजीविका सहायता के लिए महिला स्वयं सहायता समूह से जुड़ें।"),
+      [eq("rural", true), eq("gender", "female"), eq("bpl", true)], [],
+      ["aadhaar", "bank_passbook", "address_proof"]),
+    S("nulm", ["work"],
+      T("DAY-NULM (urban livelihoods)", "డీఏవై-ఎన్‌యూఎల్‌ఎం (పట్టణ జీవనోపాధి)", "डीएवाई-एनयूएलएम (शहरी आजीविका)"),
+      T("Skill training and credit support for poor urban households.", "పేద పట్టణ కుటుంబాలకు నైపుణ్య శిక్షణ, రుణ సహాయం.", "गरीब शहरी परिवारों को कौशल प्रशिक्षण और ऋण सहायता।"),
+      [eq("rural", false), eq("bpl", true), gte("age", 18), lte("age", 60)], [],
+      ["aadhaar", "bpl_proof", "address_proof", "bank_passbook"]),
+    S("naps", ["work", "education"],
+      T("National Apprenticeship Promotion Scheme", "జాతీయ అప్రెంటిస్‌షిప్ ప్రోత్సాహక పథకం", "राष्ट्रीय प्रशिक्षुता प्रोत्साहन योजना"),
+      T("Paid on-the-job training (apprenticeship) with employers.", "యజమానుల వద్ద జీతంతో కూడిన ఉద్యోగ శిక్షణ (అప్రెంటిస్‌షిప్).", "नियोक्ताओं के साथ वेतन सहित कार्य प्रशिक्षण (प्रशिक्षुता)।"),
+      [gte("age", 14)], [],
+      ["aadhaar", "marksheet", "bank_passbook"]),
+
+    /* ---- older adults and disability ---- */
+    S("rvy", ["old_age", "health"],
+      T("Rashtriya Vayoshri Yojana (aids for seniors)", "రాష్ట్రీయ వయోశ్రీ యోజన (వృద్ధులకు సహాయక పరికరాలు)", "राष्ट्रीय वयोश्री योजना (वरिष्ठ नागरिकों के लिए सहायक उपकरण)"),
+      T("Free aids such as walking sticks or hearing aids for poor senior citizens.", "పేద వృద్ధులకు చేతికర్రలు, వినికిడి యంత్రాల వంటి ఉచిత పరికరాలు.", "गरीब वरिष्ठ नागरिकों को छड़ी, श्रवण यंत्र जैसे मुफ़्त उपकरण।"),
+      [gte("age", 60), eq("bpl", true)], [],
+      ["aadhaar", "age_proof", "bpl_proof"]),
+    S("scss", ["old_age", "money"],
+      T("Senior Citizens Savings Scheme", "సీనియర్ సిటిజన్స్ సేవింగ్స్ స్కీమ్", "वरिष्ठ नागरिक बचत योजना"),
+      T("A post office or bank savings scheme with regular interest for seniors.", "వృద్ధులకు క్రమమైన వడ్డీతో పోస్టాఫీసు లేదా బ్యాంకు పొదుపు పథకం.", "वरिष्ठ नागरिकों के लिए नियमित ब्याज वाली डाकघर या बैंक बचत योजना।"),
+      [gte("age", 60)], [],
+      ["aadhaar", "age_proof", "address_proof", "bank_passbook"]),
+    S("adip", ["disability", "health"],
+      T("ADIP (assistive devices for persons with disabilities)", "ఏడీఐపీ (దివ్యాంగులకు సహాయక పరికరాలు)", "एडीआईपी (दिव्यांगजनों के लिए सहायक उपकरण)"),
+      T("Free or low-cost aids such as wheelchairs and hearing aids.", "వీల్‌చైర్లు, వినికిడి యంత్రాల వంటి ఉచిత లేదా తక్కువ ఖర్చు పరికరాలు.", "व्हीलचेयर, श्रवण यंत्र जैसे मुफ़्त या सस्ते उपकरण।"),
+      [eq("disability_40_plus", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "disability_certificate", "income_certificate"]),
+    S("udid", ["disability"],
+      T("UDID (Unique Disability ID card)", "యూడీఐడీ (ప్రత్యేక వైకల్య గుర్తింపు కార్డు)", "यूडीआईडी (विशिष्ट दिव्यांगता पहचान पत्र)"),
+      T("One national ID card that proves disability for many schemes.", "అనేక పథకాలకు వైకల్యాన్ని నిరూపించే ఒకే జాతీయ గుర్తింపు కార్డు.", "कई योजनाओं में दिव्यांगता साबित करने वाला एक राष्ट्रीय पहचान पत्र।"),
+      [eq("disability_40_plus", true)], [],
+      ["aadhaar", "disability_certificate", "address_proof"]),
+
+    /* ---- education ---- */
+    S("pre_matric_dis", ["education", "disability"],
+      T("Pre-Matric Scholarship for students with disabilities", "వైకల్యం ఉన్న విద్యార్థులకు ప్రీ-మెట్రిక్ స్కాలర్‌షిప్", "दिव्यांग विद्यार्थियों के लिए प्री-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for school students with disabilities.", "వైకల్యం ఉన్న పాఠశాల విద్యార్థులకు స్కాలర్‌షిప్.", "दिव्यांग स्कूली छात्रों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("disability_40_plus", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "disability_certificate", "student_proof", "income_certificate", "bank_passbook"]),
+    S("saksham", ["education", "disability"],
+      T("Saksham Scholarship (disabled students, technical courses)", "సక్షమ్ స్కాలర్‌షిప్ (వైకల్యం ఉన్న విద్యార్థులు, సాంకేతిక కోర్సులు)", "सक्षम छात्रवृत्ति (दिव्यांग छात्र, तकनीकी पाठ्यक्रम)"),
+      T("Scholarship for students with disabilities in technical degree or diploma courses.", "సాంకేతిక డిగ్రీ లేదా డిప్లొమా కోర్సుల్లో వైకల్యం ఉన్న విద్యార్థులకు స్కాలర్‌షిప్.", "तकनीकी डिग्री या डिप्लोमा में पढ़ रहे दिव्यांग छात्रों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("disability_40_plus", true), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "disability_certificate", "student_proof", "marksheet", "income_certificate", "bank_passbook"]),
+    S("post_matric_scst", ["education"],
+      T("Post-Matric Scholarship for SC/ST students", "ఎస్‌సీ/ఎస్‌టీ విద్యార్థులకు పోస్ట్-మెట్రిక్ స్కాలర్‌షిప్", "एससी/एसटी विद्यार्थियों के लिए पोस्ट-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for SC/ST students studying after class 10.", "10వ తరగతి తర్వాత చదువుతున్న ఎస్‌సీ/ఎస్‌టీ విద్యార్థులకు స్కాలర్‌షిప్.", "10वीं के बाद पढ़ रहे एससी/एसटी विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("sc_st", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "caste_certificate", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("yasasvi", ["education"],
+      T("PM YASASVI (OBC/EBC/DNT scholarships)", "పీఎం యశస్వి (ఓబీసీ/ఈబీసీ/డీఎన్‌టీ స్కాలర్‌షిప్‌లు)", "पीएम यशस्वी (ओबीसी/ईबीसी/डीएनटी छात्रवृत्ति)"),
+      T("Scholarships for OBC, EBC and DNT students.", "ఓబీసీ, ఈబీసీ, డీఎన్‌టీ విద్యార్థులకు స్కాలర్‌షిప్‌లు.", "ओबीसी, ईबीसी और डीएनटी विद्यार्थियों के लिए छात्रवृत्तियाँ।"),
+      [eq("student", true), eq("obc", true), lte("household_income_lakh", 3)], [],
+      ["aadhaar", "caste_certificate", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("minority_post", ["education"],
+      T("Post-Matric Scholarship for minority students", "మైనారిటీ విద్యార్థులకు పోస్ట్-మెట్రిక్ స్కాలర్‌షిప్", "अल्पसंख्यक विद्यार्थियों के लिए पोस्ट-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for students from notified minority communities studying after class 10.", "10వ తరగతి తర్వాత చదువుతున్న నోటిఫై చేసిన మైనారిటీ విద్యార్థులకు స్కాలర్‌షిప్.", "10वीं के बाद पढ़ रहे अधिसूचित अल्पसंख्यक विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("minority", true), lte("household_income_lakh", 2)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("minority_pre", ["education"],
+      T("Pre-Matric Scholarship for minority students", "మైనారిటీ విద్యార్థులకు ప్రీ-మెట్రిక్ స్కాలర్‌షిప్", "अल्पसंख्यक विद्यार्थियों के लिए प्री-मैट्रिक छात्रवृत्ति"),
+      T("Scholarship for minority students in school (class 1 to 10).", "పాఠశాల (1 నుండి 10 తరగతులు)లో చదువుతున్న మైనారిటీ విద్యార్థులకు స్కాలర్‌షిప్.", "स्कूल (कक्षा 1 से 10) में पढ़ रहे अल्पसंख्यक विद्यार्थियों के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("minority", true), lte("household_income_lakh", 1)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("nmms", ["education"],
+      T("National Means-cum-Merit Scholarship", "జాతీయ మీన్స్-కమ్-మెరిట్ స్కాలర్‌షిప్", "राष्ट्रीय आय-सह-योग्यता छात्रवृत्ति"),
+      T("Scholarship for talented students from low-income families to continue school after class 8.", "8వ తరగతి తర్వాత చదువు కొనసాగించడానికి తక్కువ ఆదాయ కుటుంబాల ప్రతిభావంతులైన విద్యార్థులకు స్కాలర్‌షిప్.", "8वीं के बाद पढ़ाई जारी रखने के लिए कम आय वाले परिवारों के प्रतिभाशाली विद्यार्थियों को छात्रवृत्ति।"),
+      [eq("student", true), lte("household_income_lakh", 4)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("pragati", ["education", "women"],
+      T("Pragati Scholarship for girls in technical education", "సాంకేతిక విద్యలో బాలికలకు ప్రగతి స్కాలర్‌షిప్", "तकनीकी शिक्षा में छात्राओं के लिए प्रगति छात्रवृत्ति"),
+      T("Scholarship for girls studying technical degree or diploma courses.", "సాంకేతిక డిగ్రీ లేదా డిప్లొమా కోర్సులు చదివే బాలికలకు స్కాలర్‌షిప్.", "तकनीकी डिग्री या डिप्लोमा पढ़ रही छात्राओं के लिए छात्रवृत्ति।"),
+      [eq("student", true), eq("gender", "female"), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"]),
+    S("vidyalaxmi", ["education", "money"],
+      T("PM Vidyalaxmi (education loan support)", "పీఎం విద్యాలక్ష్మి (విద్యా రుణ సహాయం)", "पीएम विद्यालक्ष्मी (शिक्षा ऋण सहायता)"),
+      T("Help to get a bank education loan for higher studies.", "ఉన్నత చదువులకు బ్యాంకు విద్యా రుణం పొందడానికి సహాయం.", "उच्च शिक्षा के लिए बैंक शिक्षा ऋण दिलाने में सहायता।"),
+      [eq("student", true), lte("household_income_lakh", 8)], [],
+      ["aadhaar", "income_certificate", "student_proof", "marksheet", "bank_passbook"])
+  ];
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = SS_SCHEMES;
+
+</script>
+<script>
+/*
+ * One question per attribute. "I don't know" is added by the UI for every question.
+ * type: "number" | "yesno" | "choice". yesno answers are stored as true/false.
+ */
+var SS_QUESTIONS = {
+  age: {
+    type: "number", min: 0, max: 120,
+    label: { en: "Age", te: "వయస్సు", hi: "आयु" },
+    text: { en: "How old are you?", te: "మీ వయస్సు ఎంత?", hi: "आपकी उम्र कितनी है?" }
+  },
+  gender: {
+    type: "choice",
+    label: { en: "Gender", te: "లింగం", hi: "लिंग" },
+    text: { en: "Are you a woman, a man, or other?", te: "మీరు స్త్రీనా, పురుషుడా, లేదా ఇతరులా?", hi: "आप महिला हैं, पुरुष हैं, या अन्य?" },
+    options: [
+      { value: "female", label: { en: "Woman", te: "స్త్రీ", hi: "महिला" } },
+      { value: "male", label: { en: "Man", te: "పురుషుడు", hi: "पुरुष" } },
+      { value: "other", label: { en: "Other", te: "ఇతరులు", hi: "अन्य" } }
+    ]
+  },
+  widowed: {
+    type: "yesno",
+    label: { en: "Widowed", te: "వితంతువు", hi: "विधवा" },
+    text: { en: "Have you lost your husband (are you a widow)?", te: "మీరు మీ భర్తను కోల్పోయారా (వితంతువా)?", hi: "क्या आपके पति का निधन हो गया है (क्या आप विधवा हैं)?" }
+  },
+  farmer_with_land: {
+    type: "yesno",
+    label: { en: "Farmer with land", te: "భూమి ఉన్న రైతు", hi: "भूमि वाला किसान" },
+    text: { en: "Does your family own farmland?", te: "మీ కుటుంబానికి వ్యవసాయ భూమి ఉందా?", hi: "क्या आपके परिवार के पास खेती की ज़मीन है?" }
+  },
+  bpl: {
+    type: "yesno",
+    label: { en: "BPL household", te: "బీపీఎల్ కుటుంబం", hi: "बीपीएल परिवार" },
+    text: { en: "Does your household have a BPL (Below Poverty Line) card or listing?", te: "మీ కుటుంబానికి బీపీఎల్ (దారిద్య్ర రేఖ దిగువ) కార్డు లేదా జాబితాలో పేరు ఉందా?", hi: "क्या आपके परिवार के पास बीपीएल (गरीबी रेखा से नीचे) कार्ड या सूची में नाम है?" }
+  },
+  income_tax_payer: {
+    type: "yesno",
+    label: { en: "Income tax payer in household", te: "ఇంట్లో ఆదాయపు పన్ను చెల్లింపుదారు", hi: "परिवार में आयकर दाता" },
+    text: { en: "Does anyone in your household pay income tax?", te: "మీ ఇంట్లో ఎవరైనా ఆదాయపు పన్ను చెల్లిస్తారా?", hi: "क्या आपके परिवार में कोई आयकर देता है?" }
+  },
+  govt_service_or_pensioner: {
+    type: "yesno",
+    label: { en: "Government job or pension in household", te: "ఇంట్లో ప్రభుత్వ ఉద్యోగం/పింఛను", hi: "परिवार में सरकारी नौकरी/पेंशन" },
+    text: { en: "Does anyone in your household have a government job or a government pension?", te: "మీ ఇంట్లో ఎవరికైనా ప్రభుత్వ ఉద్యోగం లేదా ప్రభుత్వ పింఛను ఉందా?", hi: "क्या आपके परिवार में किसी की सरकारी नौकरी या सरकारी पेंशन है?" }
+  },
+  disability_80_plus: {
+    type: "yesno",
+    label: { en: "Disability of 80% or more", te: "80% లేదా అంతకంటే ఎక్కువ వైకల్యం", hi: "80% या अधिक दिव्यांगता" },
+    text: { en: "Do you have a disability certified at 80% or more?", te: "మీకు 80% లేదా అంతకంటే ఎక్కువ వైకల్యం ధృవీకరించబడిందా?", hi: "क्या आपकी दिव्यांगता 80% या अधिक प्रमाणित है?" }
+  },
+  pmjay_listed: {
+    type: "yesno",
+    label: { en: "Listed under PM-JAY", te: "పీఎం-జేఏవైలో నమోదు", hi: "पीएम-जेएवाई में सूचीबद्ध" },
+    text: { en: "Is your family listed under Ayushman Bharat PM-JAY (do you have a PM-JAY card or name on the list)?", te: "మీ కుటుంబం ఆయుష్మాన్ భారత్ పీఎం-జేఏవైలో నమోదై ఉందా (కార్డు లేదా జాబితాలో పేరు)?", hi: "क्या आपका परिवार आयुष्मान भारत पीएम-जेएवाई में सूचीबद्ध है (कार्ड या सूची में नाम)?" }
+  },
+  breadwinner_died: {
+    type: "yesno",
+    label: { en: "Earning member died", te: "సంపాదనాపరుడు మరణించారు", hi: "कमाने वाले का निधन" },
+    text: { en: "Has the main earning member of your family died recently?", te: "మీ కుటుంబంలో ప్రధాన సంపాదనాపరుడు ఇటీవల మరణించారా?", hi: "क्या आपके परिवार के मुख्य कमाने वाले सदस्य का हाल ही में निधन हुआ है?" }
+  },
+  rural: {
+    type: "yesno",
+    label: { en: "Rural area", te: "గ్రామీణ ప్రాంతం", hi: "ग्रामीण क्षेत्र" },
+    text: { en: "Do you live in a village (rural area)?", te: "మీరు గ్రామంలో (గ్రామీణ ప్రాంతంలో) నివసిస్తున్నారా?", hi: "क्या आप गाँव (ग्रामीण क्षेत्र) में रहते हैं?" }
+  },
+  owns_pucca_house: {
+    type: "yesno",
+    label: { en: "Owns a pucca house", te: "పక్కా ఇల్లు ఉంది", hi: "पक्का मकान है" },
+    text: { en: "Does your family own a pucca (permanent, concrete) house?", te: "మీ కుటుంబానికి పక్కా (శాశ్వత) ఇల్లు ఉందా?", hi: "क्या आपके परिवार के पास पक्का (स्थायी) मकान है?" }
+  },
+  has_lpg: {
+    type: "yesno",
+    label: { en: "LPG connection", te: "ఎల్‌పీజీ కనెక్షన్", hi: "एलपीजी कनेक्शन" },
+    text: { en: "Does your household have an LPG gas connection?", te: "మీ ఇంట్లో ఎల్‌పీజీ గ్యాస్ కనెక్షన్ ఉందా?", hi: "क्या आपके घर में एलपीजी गैस कनेक्शन है?" }
+  },
+  has_bank_account: {
+    type: "yesno",
+    label: { en: "Bank account", te: "బ్యాంకు ఖాతా", hi: "बैंक खाता" },
+    text: { en: "Do you have a bank account?", te: "మీకు బ్యాంకు ఖాతా ఉందా?", hi: "क्या आपका बैंक खाता है?" }
+  },
+  informal_worker: {
+    type: "yesno",
+    label: { en: "Unorganised worker", te: "అసంఘటిత కార్మికుడు", hi: "असंगठित कामगार" },
+    text: { en: "Do you work in the unorganised sector (for example daily wage, farm labour, domestic or construction work)?", te: "మీరు అసంఘటిత రంగంలో (ఉదా. రోజువారీ కూలి, వ్యవసాయ కూలి, ఇంటి పని, నిర్మాణ పని) పని చేస్తున్నారా?", hi: "क्या आप असंगठित क्षेत्र में काम करते हैं (जैसे दिहाड़ी, खेत मज़दूरी, घरेलू या निर्माण कार्य)?" }
+  },
+  epf_member: {
+    type: "yesno",
+    label: { en: "EPF, ESI or NPS member", te: "ఈపీఎఫ్/ఈఎస్ఐ/ఎన్‌పీఎస్ సభ్యుడు", hi: "ईपीएफ/ईएसआई/एनपीएस सदस्य" },
+    text: { en: "Are you a member of EPF, ESI or the National Pension System?", te: "మీరు ఈపీఎఫ్, ఈఎస్ఐ లేదా నేషనల్ పెన్షన్ సిస్టమ్ సభ్యులా?", hi: "क्या आप ईपीएफ, ईएसआई या राष्ट्रीय पेंशन प्रणाली के सदस्य हैं?" }
+  },
+  pregnant_or_new_mother: {
+    type: "yesno",
+    label: { en: "Pregnant or new mother", te: "గర్భిణి లేదా కొత్త తల్లి", hi: "गर्भवती या नई माँ" },
+    text: { en: "Are you pregnant, or did you have a baby in the last year?", te: "మీరు గర్భవతివా లేదా గత ఏడాదిలో ప్రసవించారా?", hi: "क्या आप गर्भवती हैं या पिछले एक साल में बच्चे को जन्म दिया है?" }
+  },
+  girl_child_under_10: {
+    type: "yesno",
+    label: { en: "Girl child under 10", te: "10 ఏళ్ల లోపు ఆడపిల్ల", hi: "10 साल से कम की बेटी" },
+    text: { en: "Does your family have a girl child under 10 years old?", te: "మీ కుటుంబంలో 10 ఏళ్ల లోపు ఆడపిల్ల ఉందా?", hi: "क्या आपके परिवार में 10 साल से कम उम्र की बेटी है?" }
+  },
+  street_vendor: {
+    type: "yesno",
+    label: { en: "Street vendor", te: "వీధి వ్యాపారి", hi: "फेरीवाला" },
+    text: { en: "Do you sell goods or food on the street, or from a cart or stall?", te: "మీరు వీధిలో లేదా బండి/స్టాల్ నుండి సరుకులు లేదా ఆహారం అమ్ముతారా?", hi: "क्या आप सड़क पर या ठेले/स्टॉल से सामान या खाना बेचते हैं?" }
+  },
+  own_business: {
+    type: "yesno",
+    label: { en: "Small business", te: "చిన్న వ్యాపారం", hi: "छोटा व्यवसाय" },
+    text: { en: "Do you run, or plan to start, a small business?", te: "మీరు చిన్న వ్యాపారం నడుపుతున్నారా లేదా ప్రారంభించాలనుకుంటున్నారా?", hi: "क्या आप छोटा व्यवसाय चलाते हैं या शुरू करना चाहते हैं?" }
+  },
+  artisan: {
+    type: "yesno",
+    label: { en: "Traditional artisan", te: "సంప్రదాయ కళాకారుడు", hi: "पारंपरिक कारीगर" },
+    text: { en: "Do you work with your hands in a traditional craft (for example carpenter, potter, weaver, blacksmith, tailor)?", te: "మీరు సంప్రదాయ హస్తకళలో (ఉదా. వడ్రంగి, కుమ్మరి, నేత, కమ్మరి, టైలర్) పని చేస్తారా?", hi: "क्या आप पारंपरिक हस्तकला में काम करते हैं (जैसे बढ़ई, कुम्हार, बुनकर, लोहार, दर्ज़ी)?" }
+  },
+  has_toilet: {
+    type: "yesno",
+    label: { en: "Toilet at home", te: "ఇంట్లో మరుగుదొడ్డి", hi: "घर में शौचालय" },
+    text: { en: "Does your household have a toilet?", te: "మీ ఇంట్లో మరుగుదొడ్డి ఉందా?", hi: "क्या आपके घर में शौचालय है?" }
+  },
+  student: {
+    type: "yesno",
+    label: { en: "Student", te: "విద్యార్థి", hi: "छात्र" },
+    text: { en: "Are you currently studying in a school or college?", te: "మీరు ప్రస్తుతం పాఠశాల లేదా కళాశాలలో చదువుతున్నారా?", hi: "क्या आप अभी स्कूल या कॉलेज में पढ़ रहे हैं?" }
+  },
+  sc_st: {
+    type: "yesno",
+    label: { en: "SC or ST", te: "ఎస్‌సీ లేదా ఎస్‌టీ", hi: "एससी या एसटी" },
+    text: { en: "Do you belong to a Scheduled Caste (SC) or Scheduled Tribe (ST)?", te: "మీరు షెడ్యూల్డ్ కులం (ఎస్‌సీ) లేదా షెడ్యూల్డ్ తెగ (ఎస్‌టీ)కి చెందినవారా?", hi: "क्या आप अनुसूचित जाति (एससी) या अनुसूचित जनजाति (एसटी) से हैं?" }
+  },
+  obc: {
+    type: "yesno",
+    label: { en: "OBC, EBC or DNT", te: "ఓబీసీ, ఈబీసీ లేదా డీఎన్‌టీ", hi: "ओबीसी, ईबीसी या डीएनटी" },
+    text: { en: "Do you belong to an Other Backward Class (OBC), Economically Backward Class (EBC) or Denotified Tribe (DNT)?", te: "మీరు ఇతర వెనుకబడిన తరగతి (ఓబీసీ), ఆర్థికంగా వెనుకబడిన తరగతి (ఈబీసీ) లేదా విముక్త తెగ (డీఎన్‌టీ)కి చెందినవారా?", hi: "क्या आप अन्य पिछड़ा वर्ग (ओबीसी), आर्थिक रूप से पिछड़ा वर्ग (ईबीसी) या विमुक्त जनजाति (डीएनटी) से हैं?" }
+  },
+  minority: {
+    type: "yesno",
+    label: { en: "Minority community", te: "మైనారిటీ వర్గం", hi: "अल्पसंख्यक समुदाय" },
+    text: { en: "Do you belong to a notified minority community (for example Muslim, Christian, Sikh, Buddhist, Jain or Parsi)?", te: "మీరు నోటిఫై చేసిన మైనారిటీ వర్గానికి (ఉదా. ముస్లిం, క్రైస్తవ, సిక్కు, బౌద్ధ, జైన, పార్సీ) చెందినవారా?", hi: "क्या आप अधिसूचित अल्पसंख्यक समुदाय (जैसे मुस्लिम, ईसाई, सिख, बौद्ध, जैन, पारसी) से हैं?" }
+  },
+  disability_40_plus: {
+    type: "yesno",
+    label: { en: "Disability of 40% or more", te: "40% లేదా అంతకంటే ఎక్కువ వైకల్యం", hi: "40% या अधिक दिव्यांगता" },
+    text: { en: "Do you have a disability certified at 40% or more?", te: "మీకు 40% లేదా అంతకంటే ఎక్కువ వైకల్యం ధృవీకరించబడిందా?", hi: "क्या आपकी दिव्यांगता 40% या अधिक प्रमाणित है?" }
+  },
+  household_income_lakh: {
+    type: "number", min: 0, max: 100,
+    label: { en: "Household income (lakh rupees a year)", te: "కుటుంబ ఆదాయం (సంవత్సరానికి లక్షల రూపాయలు)", hi: "परिवार की आय (सालाना, लाख रुपये)" },
+    text: {
+      en: "About how much does your household earn in a year, in lakh rupees? Round up to the next whole lakh (for example, 1.5 lakh is 2).",
+      te: "మీ కుటుంబ వార్షిక ఆదాయం సుమారు ఎన్ని లక్షల రూపాయలు? తదుపరి పూర్తి లక్షకు పెంచండి (ఉదా. 1.5 లక్షలు అంటే 2).",
+      hi: "आपके परिवार की सालाना कमाई लगभग कितने लाख रुपये है? अगले पूरे लाख तक गोल करें (जैसे 1.5 लाख के लिए 2)।"
+    }
+  }
+};
+
+/* Life-event tiles. They only narrow the starting set of candidate schemes (by tag). */
+var SS_TILES = [
+  { id: "farming", tag: "farming", icon: "🌾", label: { en: "Farming", te: "వ్యవసాయం", hi: "खेती" } },
+  { id: "spouse", tag: "spouse", icon: "🕯️", label: { en: "Lost my spouse", te: "జీవిత భాగస్వామిని కోల్పోయాను", hi: "जीवनसाथी को खो दिया" } },
+  { id: "old_age", tag: "old_age", icon: "🧓", label: { en: "Old age", te: "వృద్ధాప్యం", hi: "बुढ़ापा" } },
+  { id: "health", tag: "health", icon: "🏥", label: { en: "Health", te: "ఆరోగ్యం", hi: "स्वास्थ्य" } },
+  { id: "disability", tag: "disability", icon: "♿", label: { en: "Disability", te: "వైకల్యం", hi: "दिव्यांगता" } },
+  { id: "education", tag: "education", icon: "🎓", label: { en: "Education", te: "విద్య", hi: "शिक्षा" } },
+  { id: "housing", tag: "housing", icon: "🏠", label: { en: "Housing", te: "ఇల్లు", hi: "आवास" } },
+  { id: "work", tag: "work", icon: "🛠️", label: { en: "Work and business", te: "ఉపాధి, వ్యాపారం", hi: "रोज़गार और व्यवसाय" } },
+  { id: "women", tag: "women", icon: "👩‍👧", label: { en: "Women and children", te: "మహిళలు, పిల్లలు", hi: "महिलाएँ और बच्चे" } },
+  { id: "money", tag: "money", icon: "💰", label: { en: "Money and food", te: "డబ్బు, ఆహారం", hi: "पैसा और राशन" } },
+  { id: "all", tag: null, icon: "🔍", label: { en: "Not sure, check everything", te: "తెలియదు, అన్నీ తనిఖీ చేయండి", hi: "पता नहीं, सब जाँचें" } }
+];
+if (typeof module !== "undefined" && module.exports) module.exports = { SS_QUESTIONS: SS_QUESTIONS, SS_TILES: SS_TILES };
+
+</script>
+<script>
+/* Tiny i18n helper. All text lives in data/i18n.js (SS_I18N); data files carry their own en/te/hi fields. */
+var SSI18n = (function () {
+  "use strict";
+  var LANGS = [
+    { code: "en", label: "English", speech: "en-IN" },
+    { code: "te", label: "తెలుగు", speech: "te-IN" },
+    { code: "hi", label: "हिन्दी", speech: "hi-IN" }
+  ];
+  var lang = "en";
+
+  function t(key, params) {
+    var table = SS_I18N[lang] || SS_I18N.en;
+    var s = table[key];
+    if (s === undefined) s = SS_I18N.en[key];
+    if (s === undefined) return key;
+    return params ? s.replace(/\{(\w+)\}/g, function (m, k) { return k in params ? params[k] : m; }) : s;
+  }
+
+  /* Pick the current language from a {en,te,hi} object, falling back to English. */
+  function pick(obj) { return obj[lang] || obj.en; }
+
+  function setLang(code) {
+    lang = code;
+    document.documentElement.lang = code;
+  }
+
+  function speechLang() {
+    for (var i = 0; i < LANGS.length; i++) if (LANGS[i].code === lang) return LANGS[i].speech;
+    return "en-IN";
+  }
+
+  return { LANGS: LANGS, t: t, pick: pick, setLang: setLang, getLang: function () { return lang; }, speechLang: speechLang };
+})();
+
+</script>
+<script>
+/*
+ * Eligibility engine. Three-valued logic (true / false / null = unknown).
+ * Runs in the browser (global SSEngine) and under Node (module.exports).
+ * Answers: { attr: value } where value === "?" means "I don't know" and a missing key means unanswered.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.SSEngine = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  var UNKNOWN = "?";
+  var ELIGIBLE = "ELIGIBLE", NOT_ELIGIBLE = "NOT_ELIGIBLE", UNDECIDED = "UNDECIDED", NEEDS = "NEEDS_A_QUICK_CHECK";
+
+  function hasValue(answers, attr) {
+    var v = answers[attr];
+    return v !== undefined && v !== UNKNOWN;
+  }
+
+  function evalCond(c, answers) {
+    if (c.op === "or") {
+      var sawUnknown = false;
+      for (var i = 0; i < c.conds.length; i++) {
+        var r = evalCond(c.conds[i], answers);
+        if (r === true) return true;
+        if (r === null) sawUnknown = true;
+      }
+      return sawUnknown ? null : false;
+    }
+    if (!hasValue(answers, c.attr)) return null;
+    var v = answers[c.attr];
+    if (c.op === "eq") return v === c.value;
+    if (c.op === "gte") return v >= c.value;
+    if (c.op === "lte") return v <= c.value;
+    throw new Error("Unknown op " + c.op);
+  }
+
+  function condAttrs(c, out) {
+    out = out || [];
+    if (c.op === "or") c.conds.forEach(function (s) { condAttrs(s, out); });
+    else if (out.indexOf(c.attr) < 0) out.push(c.attr);
+    return out;
+  }
+
+  /* Attributes that are still unanswered AND would help resolve this condition. */
+  function unresolvedAttrs(c, answers) {
+    if (evalCond(c, answers) !== null) return [];
+    if (c.op === "or") {
+      var out = [];
+      c.conds.forEach(function (s) {
+        unresolvedAttrs(s, answers).forEach(function (a) { if (out.indexOf(a) < 0) out.push(a); });
+      });
+      return out;
+    }
+    return answers[c.attr] === undefined ? [c.attr] : [];
+  }
+
+  /* ELIGIBLE: all required true and all exclusions false. NOT_ELIGIBLE: any required false or exclusion true. */
+  function schemeStatus(s, answers) {
+    var allReq = true, allExclClear = true, i, r;
+    for (i = 0; i < s.required.length; i++) {
+      r = evalCond(s.required[i], answers);
+      if (r === false) return NOT_ELIGIBLE;
+      if (r !== true) allReq = false;
+    }
+    for (i = 0; i < s.exclusions.length; i++) {
+      r = evalCond(s.exclusions[i], answers);
+      if (r === true) return NOT_ELIGIBLE;
+      if (r !== false) allExclClear = false;
+    }
+    return allReq && allExclClear ? ELIGIBLE : UNDECIDED;
+  }
+
+  /* Pending attributes of a scheme in "earliest required condition first" order, with a rank. */
+  function pending(s, answers) {
+    var out = [];
+    function add(list, base) {
+      list.forEach(function (c, idx) {
+        unresolvedAttrs(c, answers).forEach(function (a) {
+          if (!out.some(function (p) { return p.attr === a; })) out.push({ attr: a, rank: base + idx });
+        });
+      });
+    }
+    add(s.required, 0);
+    add(s.exclusions, 1000);
+    return out;
+  }
+
+  /* Most-needed unanswered attribute among UNDECIDED schemes; tie-break by earliest required condition. */
+  function nextAttribute(schemes, answers) {
+    var count = {}, rank = {}, order = [];
+    schemes.forEach(function (s) {
+      if (schemeStatus(s, answers) !== UNDECIDED) return;
+      pending(s, answers).forEach(function (p) {
+        if (!(p.attr in count)) { count[p.attr] = 0; rank[p.attr] = p.rank; order.push(p.attr); }
+        count[p.attr]++;
+        if (p.rank < rank[p.attr]) rank[p.attr] = p.rank;
+      });
+    });
+    var best = null;
+    order.forEach(function (a) {
+      if (best === null || count[a] > count[best] || (count[a] === count[best] && rank[a] < rank[best])) best = a;
+    });
+    return best;
+  }
+
+  /* Final status for display: UNDECIDED with nothing left to ask becomes NEEDS_A_QUICK_CHECK. */
+  function finalStatus(s, answers) {
+    var st = schemeStatus(s, answers);
+    if (st === UNDECIDED && pending(s, answers).length === 0) return NEEDS;
+    return st;
+  }
+
+  function results(schemes, answers) {
+    return schemes.map(function (s) { return { scheme: s, status: finalStatus(s, answers) }; });
+  }
+
+  /* Attributes the user answered "I don't know" that block this scheme. */
+  function blockers(s, answers) {
+    var out = [];
+    s.required.concat(s.exclusions).forEach(function (c) {
+      if (evalCond(c, answers) === null) condAttrs(c).forEach(function (a) {
+        if (answers[a] === UNKNOWN && out.indexOf(a) < 0) out.push(a);
+      });
+    });
+    return out;
+  }
+
+  /* Per-condition outcomes, for building plain-language "why" text. */
+  function explain(s, answers) {
+    var items = [];
+    s.required.forEach(function (c) { items.push({ kind: "required", cond: c, result: evalCond(c, answers) }); });
+    s.exclusions.forEach(function (c) { items.push({ kind: "exclusion", cond: c, result: evalCond(c, answers) }); });
+    return items;
+  }
+
+  function fixedFormLength(schemes) {
+    var seen = [];
+    schemes.forEach(function (s) {
+      s.required.concat(s.exclusions).forEach(function (c) {
+        condAttrs(c).forEach(function (a) { if (seen.indexOf(a) < 0) seen.push(a); });
+      });
+    });
+    return seen.length;
+  }
+
+  function candidates(schemes, tag) {
+    if (!tag) return schemes.slice();
+    return schemes.filter(function (s) { return s.tags.indexOf(tag) >= 0; });
+  }
+
+  /* Run the whole adaptive loop against a profile. Attributes missing from the profile are answered "?". */
+  function simulate(schemes, profile) {
+    var answers = {}, asked = [], a;
+    while ((a = nextAttribute(schemes, answers)) !== null) {
+      asked.push(a);
+      answers[a] = a in profile ? profile[a] : UNKNOWN;
+    }
+    return { answers: answers, asked: asked, count: asked.length, results: results(schemes, answers) };
+  }
+
+  /* Documents needed by all schemes that are not rejected, deduplicated, in first-seen order. */
+  function documentUnion(schemes, answers) {
+    var ids = [], need = {};
+    schemes.forEach(function (s) {
+      if (finalStatus(s, answers) === NOT_ELIGIBLE) return;
+      s.documents.forEach(function (d) {
+        if (!need[d]) { need[d] = []; ids.push(d); }
+        need[d].push(s.id);
+      });
+    });
+    return ids.map(function (id) { return { id: id, schemes: need[id] }; });
+  }
+
+  return {
+    UNKNOWN: UNKNOWN, ELIGIBLE: ELIGIBLE, NOT_ELIGIBLE: NOT_ELIGIBLE, UNDECIDED: UNDECIDED, NEEDS_A_QUICK_CHECK: NEEDS,
+    evalCond: evalCond, schemeStatus: schemeStatus, nextAttribute: nextAttribute, finalStatus: finalStatus,
+    results: results, blockers: blockers, explain: explain, fixedFormLength: fixedFormLength,
+    candidates: candidates, simulate: simulate, documentUnion: documentUnion, condAttrs: condAttrs
+  };
+});
+
+</script>
+<script>
+/*
+ * Name mismatch pre-check. Names only, compared on-device. Runs in browser (SSMismatch) and Node.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.SSMismatch = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  var CLASSES = ["EXACT", "FORMATTING_ONLY", "INITIAL_VS_FULL", "ORDER_DIFFERS", "SPELLING_VARIANT", "DIFFERENT"];
+  var HONORIFICS = ["mr", "mrs", "ms", "smt", "sri", "shri", "late", "dr"];
+
+  /* ---- Stretch goal: simple Telugu and Devanagari to Latin transliteration ---- */
+  var IND = {
+    // Devanagari
+    dev: {
+      lo: 0x0900, hi: 0x097F, virama: "्", deleteFinalSchwa: true,
+      vowels: { "अ": "a", "आ": "a", "इ": "i", "ई": "i", "उ": "u", "ऊ": "u", "ऋ": "ru", "ए": "e", "ऐ": "ai", "ओ": "o", "औ": "au" },
+      matras: { "ा": "a", "ि": "i", "ी": "i", "ु": "u", "ू": "u", "ृ": "ru", "े": "e", "ै": "ai", "ो": "o", "ौ": "au" },
+      marks: { "ं": "n", "ँ": "n", "ः": "h" },
+      cons: { "क": "k", "ख": "kh", "ग": "g", "घ": "gh", "ङ": "n", "च": "ch", "छ": "ch", "ज": "j", "झ": "jh", "ञ": "n",
+        "ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण": "n", "त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
+        "प": "p", "फ": "ph", "ब": "b", "भ": "bh", "म": "m", "य": "y", "र": "r", "ल": "l", "ळ": "l", "व": "v",
+        "श": "sh", "ष": "sh", "स": "s", "ह": "h" }
+    },
+    // Telugu
+    tel: {
+      lo: 0x0C00, hi: 0x0C7F, virama: "్", deleteFinalSchwa: false,
+      vowels: { "అ": "a", "ఆ": "a", "ఇ": "i", "ఈ": "i", "ఉ": "u", "ఊ": "u", "ఋ": "ru", "ఎ": "e", "ఏ": "e", "ఐ": "ai", "ఒ": "o", "ఓ": "o", "ఔ": "au" },
+      matras: { "ా": "a", "ి": "i", "ీ": "i", "ు": "u", "ూ": "u", "ృ": "ru", "ె": "e", "ే": "e", "ై": "ai", "ొ": "o", "ో": "o", "ౌ": "au" },
+      marks: { "ం": "n", "ఁ": "n", "ః": "h" },
+      cons: { "క": "k", "ఖ": "kh", "గ": "g", "ఘ": "gh", "ఙ": "n", "చ": "ch", "ఛ": "ch", "జ": "j", "ఝ": "jh", "ఞ": "n",
+        "ట": "t", "ఠ": "th", "డ": "d", "ఢ": "dh", "ణ": "n", "త": "t", "థ": "th", "ద": "d", "ధ": "dh", "న": "n",
+        "ప": "p", "ఫ": "ph", "బ": "b", "భ": "bh", "మ": "m", "య": "y", "ర": "r", "ఱ": "r", "ల": "l", "ళ": "l", "వ": "v",
+        "శ": "sh", "ష": "sh", "స": "s", "హ": "h" }
+    }
+  };
+
+  function scriptOf(ch) {
+    var c = ch.charCodeAt(0);
+    if (c >= IND.dev.lo && c <= IND.dev.hi) return IND.dev;
+    if (c >= IND.tel.lo && c <= IND.tel.hi) return IND.tel;
+    return null;
+  }
+
+  function hasIndic(s) {
+    for (var i = 0; i < s.length; i++) if (scriptOf(s.charAt(i))) return true;
+    return false;
+  }
+
+  function scriptName(s) {
+    for (var i = 0; i < s.length; i++) {
+      var sc = scriptOf(s.charAt(i));
+      if (sc) return sc === IND.dev ? "dev" : "tel";
+    }
+    return "lat";
+  }
+
+  function transliterateWord(word) {
+    var out = "", pendingA = false, i, ch, sc;
+    function flush() { if (pendingA) { out += "a"; pendingA = false; } }
+    for (i = 0; i < word.length; i++) {
+      ch = word.charAt(i);
+      sc = scriptOf(ch);
+      if (!sc) { flush(); out += ch; continue; }
+      if (sc.cons[ch] !== undefined) { flush(); out += sc.cons[ch]; pendingA = true; }
+      else if (ch === sc.virama) { pendingA = false; }
+      else if (sc.matras[ch] !== undefined) { pendingA = false; out += sc.matras[ch]; }
+      else if (sc.vowels[ch] !== undefined) { flush(); out += sc.vowels[ch]; }
+      else if (sc.marks[ch] !== undefined) { flush(); out += sc.marks[ch]; }
+      // anything else (nukta, ZWJ...) is ignored
+    }
+    var last = word.charAt(word.length - 1), lsc = scriptOf(last);
+    if (pendingA && !(lsc && lsc.deleteFinalSchwa)) out += "a";
+    return out;
+  }
+
+  function transliterate(s) {
+    return s.split(/(\s+)/).map(function (w) { return hasIndic(w) ? transliterateWord(w) : w; }).join("");
+  }
+
+  /* ---- Normalisation ---- */
+  // Unicode property escapes need Chrome 64+; fall back to explicit ranges on older browsers.
+  var PUNCT;
+  try { PUNCT = new RegExp("[^\\p{L}\\p{N}\\p{M}\\s]", "gu"); }
+  catch (e) { PUNCT = /[^\w\sÀ-ɏऀ-ॿఀ-౿]/g; }
+
+  function normalize(name) {
+    var s = String(name || "").normalize("NFKC").toLowerCase();
+    s = s.replace(PUNCT, " ");
+    var toks = s.split(/\s+/).filter(Boolean).filter(function (t) { return HONORIFICS.indexOf(t) < 0; });
+    return toks;
+  }
+
+  /* ---- Distances ---- */
+  function editDistance(a, b) {
+    var m = a.length, n = b.length, prev = [], cur, i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur = [i];
+      for (j = 1; j <= n; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[n];
+  }
+
+  function similarity(a, b) {
+    var L = Math.max(a.length, b.length);
+    return L === 0 ? 1 : 1 - editDistance(a, b) / L;
+  }
+
+  /* Rough phonetic key so Laxmi ~ Lakshmi, Venkat ~ Venkata, Vijaya ~ Wijaya. */
+  function phonetic(t) {
+    return t.replace(/x/g, "ks").replace(/sh/g, "s").replace(/ph/g, "f").replace(/w/g, "v").replace(/z/g, "j")
+      .replace(/(.)\1+/g, "$1").replace(/ee/g, "i").replace(/oo/g, "u").replace(/([bcdgjkpt])h/g, "$1");
+  }
+
+  function spellingClose(a, b) {
+    var L = Math.max(a.length, b.length);
+    if (L <= 3) return false;
+    var pairs = [[a, b], [phonetic(a), phonetic(b)]];
+    for (var i = 0; i < pairs.length; i++) {
+      var x = pairs[i][0], y = pairs[i][1], d = editDistance(x, y);
+      if (d === 0) return true;
+      if (Math.max(x.length, y.length) <= 4) { if (d <= 1) return true; continue; }
+      if (d <= 2 || similarity(x, y) >= 0.8) return true;
+    }
+    return false;
+  }
+
+  function isInitialOf(a, b) { // one side is a single letter that starts the other
+    return (a.length === 1 && b.length > 1 && b.charAt(0) === a) || (b.length === 1 && a.length > 1 && a.charAt(0) === b);
+  }
+
+  /* Relation of two tokens: "eq" | "initial" | "spell" | null */
+  function tokenRel(a, b) {
+    if (a === b) return "eq";
+    if (isInitialOf(a, b)) return "initial";
+    if (spellingClose(a, b)) return "spell";
+    return null;
+  }
+
+  function permutations(arr) {
+    if (arr.length <= 1) return [arr.slice()];
+    var out = [];
+    arr.forEach(function (x, i) {
+      permutations(arr.slice(0, i).concat(arr.slice(i + 1))).forEach(function (p) { out.push([x].concat(p)); });
+    });
+    return out;
+  }
+
+  function classifyTokens(ta, tb) {
+    if (ta.length !== tb.length || ta.length === 0) return "DIFFERENT";
+    function rels(order) {
+      var r = [];
+      for (var i = 0; i < ta.length; i++) {
+        var x = tokenRel(ta[i], order[i]);
+        if (!x) return null;
+        r.push(x);
+      }
+      return r;
+    }
+    var r = rels(tb);
+    if (r) {
+      if (r.indexOf("initial") >= 0) return "INITIAL_VS_FULL";
+      if (r.indexOf("spell") >= 0) return "SPELLING_VARIANT";
+      return "FORMATTING_ONLY";
+    }
+    if (ta.length <= 5) {
+      var perms = permutations(tb);
+      for (var i = 0; i < perms.length; i++) if (rels(perms[i])) return "ORDER_DIFFERS";
+    }
+    return "DIFFERENT";
+  }
+
+  /* Compare two names. Returns { cls, severity: "ok"|"warning"|"fail", crossScript } */
+  function compare(a, b) {
+    var rawA = String(a || "").trim(), rawB = String(b || "").trim();
+    if (rawA === rawB && rawA !== "") return { cls: "EXACT", severity: "ok", crossScript: false };
+    var cross = scriptName(rawA) !== scriptName(rawB);
+    var ta = normalize(hasIndic(rawA) ? transliterate(rawA.normalize("NFKC")) : rawA);
+    var tb = normalize(hasIndic(rawB) ? transliterate(rawB.normalize("NFKC")) : rawB);
+    var cls;
+    if (ta.join(" ") === tb.join(" ") || ta.join("") === tb.join("")) cls = "FORMATTING_ONLY";
+    else cls = classifyTokens(ta, tb);
+    // A name written in two different scripts is never "just formatting": the records really differ.
+    if (cross && cls === "FORMATTING_ONLY") cls = "SPELLING_VARIANT";
+    return { cls: cls, severity: cls === "EXACT" || cls === "FORMATTING_ONLY" ? "ok" : cls === "DIFFERENT" ? "fail" : "warning", crossScript: cross };
+  }
+
+  /*
+   * records: [{ key: "aadhaar", name: "..." }, ...]. Blank names are skipped.
+   * Returns { pairs: [{a, b, cls, severity, crossScript}], worst: "ok"|"warning"|"fail"|"none" }
+   */
+  function checkRecords(records) {
+    var filled = records.filter(function (r) { return r.name && r.name.trim(); });
+    var pairs = [], worst = filled.length < 2 ? "none" : "ok", rank = { ok: 0, warning: 1, fail: 2 };
+    for (var i = 0; i < filled.length; i++) {
+      for (var j = i + 1; j < filled.length; j++) {
+        var c = compare(filled[i].name, filled[j].name);
+        pairs.push({ a: filled[i].key, b: filled[j].key, cls: c.cls, severity: c.severity, crossScript: c.crossScript });
+        if (worst !== "none" && rank[c.severity] > rank[worst]) worst = c.severity;
+      }
+    }
+    return { pairs: pairs, worst: worst, filled: filled.length };
+  }
+
+  return {
+    CLASSES: CLASSES, normalize: normalize, compare: compare, checkRecords: checkRecords,
+    editDistance: editDistance, similarity: similarity, transliterate: transliterate, hasIndic: hasIndic
+  };
+});
+
+</script>
+<script>
+/* Inline line icons (no image files). Built with createElementNS, never innerHTML. 24x24 grid, drawn with currentColor. */
+var SSIcons = (function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var DOC = "M7 3h8l4 4v14H7z M15 3v4h4";
+  var PATHS = {
+    // documents
+    aadhaar: ["M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z", "M9 11.5a2 2 0 100-.01", "M5.5 16.5c.8-2.5 6.2-2.5 7 0", "M14.5 10h4 M14.5 14h4"],
+    bank_passbook: ["M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3V4z", "M5 17a3 3 0 013-3h11", "M9 8h6"],
+    land_record: ["M3 18l6-8 4 5 3-3 5 6z", "M3 21h18"],
+    age_proof: ["M5 5h14a2 2 0 012 2v13H3V7a2 2 0 012-2z", "M3 10h18 M8 3v4 M16 3v4", "M8 14h3 M13 14h3 M8 17h3"],
+    bpl_proof: ["M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z", "M12 14.5a2.5 2.5 0 100-.01", "M6 9.5h.01 M18 14.5h.01"],
+    spouse_death_certificate: [DOC, "M10 12h6 M10 16h4"],
+    disability_certificate: [DOC, "M9.5 14.5l2 2 4-4"],
+    ration_card: ["M4 10h16l-1.6 9H5.6z", "M8 10l3-5 M16 10l-3-5", "M9 14v2 M12 14v2 M15 14v2"],
+    // generic fallbacks
+    doc: [DOC, "M10 13h6 M10 17h4"],
+    scheme: ["M3 10l9-6 9 6", "M5 10v8 M9 10v8 M15 10v8 M19 10v8", "M3 20h18"],
+    // schemes
+    pm_kisan: ["M12 21V9", "M12 9c-3 0-4-2-4-5 3 0 4 2 4 5z M12 9c3 0 4-2 4-5-3 0-4 2-4 5z", "M12 15c-3 0-4-2-4-4 M12 15c3 0 4-2 4-4"],
+    ignwps: ["M12 2.5c1.6 2 2.2 3.4 0 5.5-2.2-2.1-1.6-3.5 0-5.5z", "M9 10h6v10a1 1 0 01-1 1h-4a1 1 0 01-1-1z"],
+    ignoaps: ["M10 4.5a1.8 1.8 0 100-.01", "M10 8.5v5.5l-2 6.5 M10 14l3 6.5", "M15 11v9.5 M15 11a1.7 1.7 0 013.4 0"],
+    igndps: ["M10 4a1.6 1.6 0 100-.01", "M10 7.5V13h4.5l2.5 5", "M8.5 15a4 4 0 104.5 5"],
+    pmjay: ["M12 20.5s-7.5-4.6-7.5-10.5A4.2 4.2 0 0112 7.7 4.2 4.2 0 0119.5 10c0 5.9-7.5 10.5-7.5 10.5z", "M12 10v5 M9.5 12.5h5"]
+  };
+
+  function icon(name, fallback) {
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("class", "ico");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    (PATHS[name] || PATHS[fallback] || []).forEach(function (d) {
+      var p = document.createElementNS(NS, "path");
+      p.setAttribute("d", d);
+      svg.appendChild(p);
+    });
+    return svg;
+  }
+
+  return { icon: icon, has: function (n) { return n in PATHS; } };
+})();
+
+</script>
+<script>
+/*
+ * Demo metrics, measured live. Nothing here is stored or sent anywhere.
+ * Network requests: we wrap the browser's request APIs (fetch, XHR, sendBeacon, WebSocket, EventSource)
+ * at load time and count every call the app's own code makes. The expected number is 0.
+ * (Loading the app's own local .js/.css files at page start is not counted, it is not a runtime request.)
+ */
+var SSMetrics = (function () {
+  "use strict";
+  var wrapped = 0, startedAt = null, resultMs = null;
+
+  function count() { wrapped++; }
+
+  if (typeof window !== "undefined") {
+    if (window.fetch) {
+      var origFetch = window.fetch;
+      window.fetch = function () { count(); return origFetch.apply(this, arguments); };
+    }
+    if (window.XMLHttpRequest) {
+      var origOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function () { count(); return origOpen.apply(this, arguments); };
+    }
+    if (navigator.sendBeacon) {
+      var origBeacon = navigator.sendBeacon;
+      navigator.sendBeacon = function () { count(); return origBeacon.apply(navigator, arguments); };
+    }
+    ["WebSocket", "EventSource"].forEach(function (name) {
+      var Orig = window[name];
+      if (!Orig) return;
+      var Wrapped = function () { count(); return new (Function.prototype.bind.apply(Orig, [null].concat([].slice.call(arguments))))(); };
+      Wrapped.prototype = Orig.prototype;
+      window[name] = Wrapped;
+    });
+  }
+
+  /* Cross-check with the browser's own resource timeline (fetch / XHR / beacon initiators only). */
+  function observed() {
+    if (typeof performance === "undefined" || !performance.getEntriesByType) return 0;
+    return performance.getEntriesByType("resource").filter(function (e) {
+      return e.initiatorType === "fetch" || e.initiatorType === "xmlhttprequest" || e.initiatorType === "beacon";
+    }).length;
+  }
+
+  function networkRequests() { return Math.max(wrapped, observed()); }
+
+  function ruleDataKB() {
+    var json = JSON.stringify([SS_SCHEMES, SS_QUESTIONS, SS_DOCS, SS_TILES]);
+    var bytes = typeof TextEncoder !== "undefined" ? new TextEncoder().encode(json).length : json.length;
+    return bytes / 1024;
+  }
+
+  return {
+    begin: function () { startedAt = performance.now(); resultMs = null; },
+    end: function () { if (startedAt !== null && resultMs === null) resultMs = performance.now() - startedAt; },
+    reset: function () { startedAt = null; resultMs = null; },
+    unfinish: function () { resultMs = null; },
+    resultMs: function () { return resultMs; },
+    networkRequests: networkRequests,
+    ruleDataKB: ruleDataKB
+  };
+})();
+
+</script>
+<script>
+/*
+ * Optional voice: Web Speech API for answering, speechSynthesis for reading questions aloud.
+ * Parsers are pure functions (also run under Node for tests). Off by default; the UI shows a notice first.
+ * PRIVACY: speech recognition in some browsers sends audio to the browser vendor's servers.
+ * This file itself makes no network requests.
+ */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory(root);
+  else root.SSVoice = factory(root);
+})(typeof self !== "undefined" ? self : this, function (root) {
+  "use strict";
+
+  var UNKNOWN = "?";
+
+  var PUNCT;
+  try { PUNCT = new RegExp("[^\\p{L}\\p{N}\\p{M}\\s]", "gu"); }
+  catch (e) { PUNCT = /[^\w\sÀ-ɏऀ-ॿఀ-౿]/g; }
+
+  function tokens(text) {
+    return String(text || "").normalize("NFKC").toLowerCase().replace(PUNCT, " ").split(/\s+/).filter(Boolean);
+  }
+  function flat(text) { return " " + tokens(text).join(" ") + " "; }
+
+  var UNKNOWN_PHRASES = ["dont know", "don t know", "do not know", "not sure", "no idea", "idk", "teliyadu", "teliyadhu",
+    "pata nahi", "pata nahin", "pata nhi", "malum nahi", "maloom nahi", "నాకు తెలియదు", "తెలియదు", "पता नहीं", "पता नही", "नहीं पता", "मालूम नहीं"];
+  var YES = ["yes", "yeah", "yep", "yup", "avunu", "avnu", "awunu", "haan", "han", "haa", "ha", "hanji", "అవును", "అవునండి", "हाँ", "हां", "हा", "जी"];
+  var NO = ["no", "nope", "kaadu", "kadu", "kaadhu", "ledu", "nahin", "nahi", "nahee", "కాదు", "లేదు", "नहीं", "नही", "ना"];
+
+  /* true | false | "?" | null (not understood) */
+  function parseYesNo(text) {
+    var f = flat(text), i;
+    for (i = 0; i < UNKNOWN_PHRASES.length; i++) if (f.indexOf(" " + UNKNOWN_PHRASES[i] + " ") >= 0) return UNKNOWN;
+    var toks = tokens(text);
+    for (i = 0; i < toks.length; i++) {
+      if (YES.indexOf(toks[i]) >= 0) return true;
+      if (NO.indexOf(toks[i]) >= 0) return false;
+    }
+    return null;
+  }
+
+  var ONES = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+    thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  var TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+
+  function asciiDigits(text) {
+    return String(text || "").normalize("NFKC").replace(/[०-९]/g, function (d) { return String(d.charCodeAt(0) - 0x0966); })
+      .replace(/[౦-౯]/g, function (d) { return String(d.charCodeAt(0) - 0x0C66); });
+  }
+
+  /* Digits (ASCII, Devanagari, Telugu) or English number words up to 119. null if none. */
+  function parseNumber(text) {
+    var m = asciiDigits(text).match(/\d+/);
+    if (m) return parseInt(m[0], 10);
+    var toks = tokens(text), total = null, i, w;
+    for (i = 0; i < toks.length; i++) {
+      w = toks[i];
+      if (w in TENS) total = (total || 0) + TENS[w];
+      else if (w in ONES) total = (total || 0) + ONES[w];
+      else if (w === "hundred") total = (total || 1) * 100;
+    }
+    return total;
+  }
+
+  var CHOICE_WORDS = {
+    female: ["female", "woman", "women", "lady", "girl", "mahila", "stree", "aurat", "ammayi", "ఆడ", "స్త్రీ", "మహిళ", "महिला", "स्त्री", "औरत"],
+    male: ["male", "man", "men", "boy", "purush", "aadmi", "magavaru", "మగ", "పురుషుడు", "पुरुष", "आदमी"],
+    other: ["other", "others", "transgender", "ఇతరులు", "अन्य"]
+  };
+
+  function parseChoice(text, options) {
+    var f = flat(text), i, k, j;
+    for (i = 0; i < UNKNOWN_PHRASES.length; i++) if (f.indexOf(" " + UNKNOWN_PHRASES[i] + " ") >= 0) return UNKNOWN;
+    var toks = tokens(text);
+    for (i = 0; i < toks.length; i++) {
+      for (k = 0; k < options.length; k++) {
+        var words = CHOICE_WORDS[options[k].value] || [];
+        if (words.indexOf(toks[i]) >= 0) return options[k].value;
+        for (j in options[k].label) if (tokens(options[k].label[j]).indexOf(toks[i]) >= 0) return options[k].value;
+      }
+    }
+    return null;
+  }
+
+  /* Parse a spoken answer for a question definition from data/questions.js. null if not understood. */
+  function parseAnswer(q, text) {
+    if (q.type === "yesno") return parseYesNo(text);
+    if (q.type === "number") {
+      var u = parseYesNo(text);
+      if (u === UNKNOWN) return UNKNOWN;
+      var n = parseNumber(text);
+      return n !== null && n >= q.min && n <= q.max ? n : null;
+    }
+    if (q.type === "choice") return parseChoice(text, q.options);
+    return null;
+  }
+
+  /* ---- browser side ---- */
+  var Rec = root && (root.SpeechRecognition || root.webkitSpeechRecognition);
+  var active = null;
+
+  function recognitionSupported() { return !!Rec; }
+  function speechSupported() { return !!(root && root.speechSynthesis && root.SpeechSynthesisUtterance); }
+
+  function listen(lang, onText, onError, onEnd) {
+    stopListening();
+    var r = new Rec();
+    r.lang = lang;
+    r.interimResults = false;
+    r.maxAlternatives = 3;
+    r.onresult = function (ev) {
+      var alts = [], res = ev.results[0];
+      for (var i = 0; i < res.length; i++) alts.push(res[i].transcript);
+      onText(alts);
+    };
+    r.onerror = function (ev) { onError(ev.error || "error"); };
+    r.onend = function () { active = null; onEnd(); };
+    active = r;
+    try { r.start(); } catch (e) { active = null; onError("start-failed"); }
+  }
+
+  function stopListening() {
+    if (active) { try { active.abort(); } catch (e) { /* ignore */ } active = null; }
+  }
+
+  function speak(text, lang) {
+    if (!speechSupported()) return;
+    root.speechSynthesis.cancel();
+    var u = new root.SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    root.speechSynthesis.speak(u);
+  }
+
+  function stop() {
+    stopListening();
+    if (speechSupported()) root.speechSynthesis.cancel();
+  }
+
+  return {
+    parseYesNo: parseYesNo, parseNumber: parseNumber, parseChoice: parseChoice, parseAnswer: parseAnswer,
+    recognitionSupported: recognitionSupported, speechSupported: speechSupported,
+    listen: listen, speak: speak, stop: stop, stopListening: stopListening
+  };
+});
+
+</script>
+<script>
+/*
+ * Seva Sahayak: app state and screens. All state lives in memory only (no storage, no cookies, no network).
+ */
+(function () {
+  "use strict";
+
+  const E = SSEngine, M = SSMismatch, I = SSI18n, t = I.t;
+  const NAME_KEYS = ["aadhaar", "bank", "land"];
+  const STEP_OF = { start: 0, question: 1, results: 2, docs: 3, names: 4, summary: 5 };
+  const STEP_KEYS = ["nav.start", "nav.questions", "nav.results", "nav.docs", "nav.names", "nav.summary"];
+
+  /* Preferences that survive "Clear my details" (they hold no personal data). */
+  const ui = { size: 0, helper: false, helped: 0, metricsOn: false, voiceOn: false, voiceNotice: false };
+
+  /* Auto-wipe after inactivity. ?idle=<seconds> shortens it for demos and testing. */
+  const idleParam = Number(new URLSearchParams(location.search).get("idle"));
+  const IDLE_MS = (idleParam > 0 ? idleParam : 300) * 1000;
+  const WARN_MS = Math.min(30000, IDLE_MS / 2);
+
+  function fresh() {
+    return {
+      screen: "start", tile: null, cands: [], answers: {}, asked: [],
+      docs: {}, names: { aadhaar: "", bank: "", land: "" }, nameResult: null, copyMsg: ""
+    };
+  }
+  let s = fresh();
+
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- tiny DOM helper (text is always set as text, never as HTML) ---------- */
+  function h(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    kids.flat().forEach((c) => {
+      if (c == null || c === false) return;
+      el.append(c.nodeType ? c : document.createTextNode(c));
+    });
+    return el;
+  }
+
+  /* ---------- label helpers ---------- */
+  const Q = SS_QUESTIONS;
+
+  function attrLabel(attr) { return I.pick(Q[attr].label); }
+
+  function answerText(attr, v) {
+    if (v === undefined) return "—";
+    if (v === E.UNKNOWN) return t("answer.unknown");
+    if (v === true) return t("answer.yes");
+    if (v === false) return t("answer.no");
+    const q = Q[attr];
+    if (q.options) {
+      const o = q.options.find((x) => x.value === v);
+      if (o) return I.pick(o.label);
+    }
+    return String(v);
+  }
+
+  function needText(c) {
+    if (c.op === "eq") {
+      if (c.value === true) return t("need.yes");
+      if (c.value === false) return t("need.no");
+      const o = (Q[c.attr].options || []).find((x) => x.value === c.value);
+      return o ? I.pick(o.label) : String(c.value);
+    }
+    return t(c.op === "gte" ? "need.gte" : "need.lte", { n: c.value });
+  }
+
+  function condLabel(c) { return c.op === "or" ? c.conds.map((x) => attrLabel(x.attr)).join(" / ") : attrLabel(c.attr); }
+  function condAnswer(c) {
+    if (c.op === "or") return c.conds.map((x) => answerText(x.attr, s.answers[x.attr])).join(", ");
+    return answerText(c.attr, s.answers[c.attr]);
+  }
+  function condNeed(c) {
+    if (c.op === "or") return c.conds.map((x) => "(" + attrLabel(x.attr) + ": " + needText(x) + ")").join(" " + t("or") + " ");
+    return needText(c);
+  }
+
+  /* Plain-language "why" lines built from the user's own answers. */
+  function whyLines(scheme, status) {
+    const lines = [];
+    E.explain(scheme, s.answers).forEach((it) => {
+      // an OR that is satisfied is explained by the alternative that satisfied it
+      const c = it.cond.op === "or" && it.result === true ? it.cond.conds.find((x) => E.evalCond(x, s.answers) === true) : it.cond;
+      const p = { label: condLabel(c), answer: condAnswer(c), need: condNeed(c) };
+      let cls, text;
+      if (it.kind === "required") {
+        if (it.result === true) { cls = "ok"; text = t("why.met", p); }
+        else if (it.result === false) { cls = "no"; text = t("why.failed", p); }
+        else { cls = "unk"; text = t("why.unknown", p); }
+      } else {
+        if (it.result === true) { cls = "no"; text = t("why.exclTriggered", p); }
+        else if (it.result === false) { cls = "ok"; text = t("why.met", p); }
+        else { cls = "unk"; text = t("why.exclUnknown", p); }
+      }
+      // A rejected scheme only needs the reasons it was rejected.
+      if (status === E.NOT_ELIGIBLE && cls !== "no") return;
+      // e.g. "age at least 40" and "age at most 79" both read "Age: 54"; show it once
+      if (lines.some((l) => l.text === text)) return;
+      lines.push({ cls, text });
+    });
+    return lines;
+  }
+
+  /* ---------- chrome (header, language buttons, tools, steps) ---------- */
+  let chromeBuilt = false;
+  function updateChrome() {
+    $("skip").textContent = t("skip");
+    $("brand").textContent = t("app.title");
+    $("disclaimer").textContent = t("disclaimer");
+    document.title = t("app.title");
+    document.documentElement.setAttribute("data-size", String(ui.size));
+
+    const langs = $("langs");
+    langs.setAttribute("aria-label", t("lang.label"));
+    if (!chromeBuilt) {
+      I.LANGS.forEach((l) => {
+        langs.append(h("button", { type: "button", id: "lang-" + l.code, lang: l.code, onclick: () => { I.setLang(l.code); render(false, "lang-" + l.code); } }, l.label));
+      });
+      const tools = $("tools");
+      tools.append(
+        h("button", { type: "button", id: "size-btn", class: "small", onclick: () => { ui.size = (ui.size + 1) % 4; render(false, "size-btn"); } }),
+        h("button", { type: "button", id: "next-btn", class: "small primary", onclick: nextPerson }),
+        h("span", { id: "helper-count", class: "hint", role: "status" }),
+        h("button", { type: "button", id: "clear-btn", class: "small danger", onclick: () => wipe(t("clear.done")) }),
+        h("details", { id: "more", class: "more" },
+          h("summary", { id: "more-sum" }),
+          h("div", { class: "more-body" },
+            h("button", { type: "button", id: "helper-btn", class: "small", onclick: () => { ui.helper = !ui.helper; render(false, "helper-btn"); } }),
+            h("button", { type: "button", id: "metrics-btn", class: "small", onclick: () => { ui.metricsOn = !ui.metricsOn; render(false, "metrics-btn"); } }),
+            h("button", { type: "button", id: "voice-btn", class: "small", onclick: toggleVoice })))
+      );
+      chromeBuilt = true;
+    }
+    $("more-sum").textContent = "⋯ " + t("more");
+    $("helper-btn").textContent = t("helper.toggle");
+    $("helper-btn").setAttribute("aria-pressed", String(ui.helper));
+    $("next-btn").textContent = t("helper.next");
+    $("next-btn").hidden = !ui.helper;
+    $("helper-count").textContent = t("helper.count", { n: ui.helped });
+    $("helper-count").hidden = !ui.helper;
+    $("metrics-btn").textContent = t("metrics.toggle");
+    $("metrics-btn").setAttribute("aria-pressed", String(ui.metricsOn));
+    $("voice-btn").textContent = ui.voiceOn ? t("voice.off") : t("voice.toggle");
+    $("voice-btn").setAttribute("aria-pressed", String(ui.voiceOn));
+    $("voice-btn").hidden = !(SSVoice.recognitionSupported() || SSVoice.speechSupported());
+    I.LANGS.forEach((l) => $("lang-" + l.code).setAttribute("aria-pressed", String(l.code === I.getLang())));
+    $("size-btn").textContent = "A" + "+".repeat(Math.min(ui.size + 1, 3));
+    $("size-btn").setAttribute("aria-label", t("size.label") + ". " + t("size." + ui.size));
+    $("clear-btn").textContent = t("clear");
+
+    const cur = STEP_OF[s.screen];
+    const steps = $("steps");
+    steps.replaceChildren(...STEP_KEYS.map((k, i) => h("li", { "aria-current": i === cur ? "step" : null, class: i < cur ? "done" : null }, h("span", { class: "num", "aria-hidden": "true", text: String(i + 1) }), h("span", { class: "lbl", text: t(k) }))));
+  }
+
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 4000);
+  }
+
+  /* ---------- navigation / render ---------- */
+  function go(screen) { s.screen = screen; render(true); }
+
+  function render(focusHeading, focusId) {
+    // no question left to ask means the results screen, so the step indicator must say so too
+    if (s.screen === "question" && E.nextAttribute(s.cands, s.answers) === null) s.screen = "results";
+    updateChrome();
+    const main = $("main");
+    main.replaceChildren();
+    const screens = { start: renderStart, question: renderQuestion, results: renderResults, docs: renderDocs, names: renderNames, summary: renderSummary };
+    const heading = screens[s.screen](main);
+    if (ui.voiceNotice) main.prepend(voiceNoticeBox());
+    renderMetrics();
+    if (ui.voiceOn && s.screen === "question") speakQuestion();
+    if (focusId && $(focusId)) $(focusId).focus({ preventScroll: true });
+    else if (focusHeading && heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function wipe(message) {
+    SSVoice.stop();
+    SSMetrics.reset();
+    s = fresh();
+    ui.voiceNotice = false;
+    hideIdleBanner();
+    render(true);
+    if (message) showToast(message);
+  }
+
+  /* ---------- 8. helper mode ---------- */
+  function nextPerson() {
+    if (s.asked.length > 0) ui.helped++; // a number only, no data kept
+    wipe();
+  }
+
+  /* ---------- 9. inactivity wipe ---------- */
+  let warnTimer = null, wipeTimer = null, countTimer = null;
+
+  function hasData() {
+    return s.screen !== "start" || s.asked.length > 0 || Object.keys(s.docs).length > 0 || NAME_KEYS.some((k) => s.names[k]);
+  }
+
+  function hideIdleBanner() {
+    clearInterval(countTimer);
+    $("idle-banner").hidden = true;
+  }
+
+  function showIdleWarning() {
+    if (!hasData()) return;
+    let left = Math.round(WARN_MS / 1000);
+    const banner = $("idle-banner");
+    const msg = h("span", { text: t("idle.warn", { s: left }) });
+    banner.replaceChildren(msg, h("button", { type: "button", class: "primary", onclick: resetIdle }, t("idle.keep")));
+    banner.hidden = false;
+    clearInterval(countTimer);
+    countTimer = setInterval(() => { left = Math.max(0, left - 1); msg.textContent = t("idle.warn", { s: left }); }, 1000);
+  }
+
+  function resetIdle() {
+    hideIdleBanner();
+    clearTimeout(warnTimer);
+    clearTimeout(wipeTimer);
+    warnTimer = setTimeout(showIdleWarning, IDLE_MS - WARN_MS);
+    wipeTimer = setTimeout(() => { if (hasData()) wipe(t("idle.wiped")); else resetIdle(); }, IDLE_MS);
+  }
+
+  ["pointerdown", "keydown", "input", "touchstart"].forEach((ev) => document.addEventListener(ev, () => {
+    if (!$("idle-banner").hidden) return; // once warned, only the "Keep my details" button keeps them
+    resetIdle();
+  }, true));
+
+  /* ---------- 10. demo metrics ---------- */
+  function renderMetrics() {
+    const box = $("metrics");
+    box.hidden = !ui.metricsOn;
+    if (!ui.metricsOn) return;
+    const asked = s.asked.length;
+    const fixed = s.cands.length ? E.fixedFormLength(s.cands) : 0;
+    const ms = SSMetrics.resultMs();
+    const fixedAll = E.fixedFormLength(SS_SCHEMES);
+    const row = (k, v) => [h("dt", { text: k }), h("dd", { text: v })];
+    box.replaceChildren(
+      h("h2", { text: t("metrics.title") }),
+      h("dl", null,
+        row(t("metrics.questions"), String(asked)),
+        row(t("metrics.fixed"), s.cands.length ? fixed + " (" + t("metrics.fixedAll") + ": " + fixedAll + ")" : "—"),
+        row(t("metrics.saved"), s.cands.length ? String(fixed - asked) : "—"),
+        row(t("metrics.time"), ms === null ? t("metrics.na") : (ms / 1000).toFixed(1) + " s"),
+        row(t("metrics.size"), SSMetrics.ruleDataKB().toFixed(1) + " KB"),
+        row(t("metrics.net"), String(SSMetrics.networkRequests()))),
+      h("p", { class: "hint", text: t("metrics.note") }));
+  }
+
+  /* ---------- 11. voice (optional, off by default) ---------- */
+  function voiceNoticeBox() {
+    return h("section", { class: "notice", role: "alertdialog", "aria-labelledby": "vn-h" },
+      h("h3", { id: "vn-h", text: t("voice.toggle") }),
+      h("p", { text: t("voice.notice") }),
+      h("div", { class: "row" },
+        h("button", { type: "button", class: "primary", id: "vn-ok", onclick: enableVoice }, t("voice.enable")),
+        h("button", { type: "button", onclick: () => { ui.voiceNotice = false; render(false, "voice-btn"); } }, t("voice.cancel"))));
+  }
+
+  function toggleVoice() {
+    if (ui.voiceOn) { ui.voiceOn = false; SSVoice.stop(); render(false, "voice-btn"); return; }
+    ui.voiceNotice = true;
+    render(false, "vn-ok");
+  }
+
+  function enableVoice() {
+    ui.voiceOn = true;
+    ui.voiceNotice = false;
+    render(false, "voice-btn");
+    if (s.screen === "start") SSVoice.speak(t("start.intro"), I.speechLang());
+  }
+
+  function speakQuestion() {
+    const el = $("qtext");
+    if (el) SSVoice.speak(el.textContent, I.speechLang());
+  }
+
+  function listenForAnswer(attr) {
+    const status = $("voice-status");
+    status.textContent = t("voice.listening");
+    SSVoice.listen(I.speechLang(), (alts) => {
+      let value = null, heard = alts[0];
+      for (const a of alts) {
+        const v = SSVoice.parseAnswer(Q[attr], a);
+        if (v !== null) { value = v; heard = a; break; }
+      }
+      if (value === null) { status.textContent = t("voice.heard", { t: heard }) + " " + t("voice.unclear"); return; }
+      showToast(t("voice.heard", { t: heard }));
+      answer(attr, value);
+    }, () => { status.textContent = t("voice.error"); }, () => {
+      if (status.textContent === t("voice.listening")) status.textContent = "";
+    });
+  }
+
+  function voiceControls(attr) {
+    if (!ui.voiceOn) return null;
+    return h("div", { class: "row noprint" },
+      SSVoice.recognitionSupported() ? h("button", { type: "button", id: "mic-btn", onclick: () => listenForAnswer(attr) }, "🎤 " + t("voice.mic")) : null,
+      SSVoice.speechSupported() ? h("button", { type: "button", onclick: speakQuestion }, "🔊 " + t("voice.read")) : null,
+      h("p", { id: "voice-status", class: "hint", role: "status", "aria-live": "polite" }));
+  }
+
+  /* ---------- 1. start ---------- */
+  function renderStart(main) {
+    main.append(h("p", { class: "lead", text: t("app.tagline") }));
+    const heading = h("h2", { text: t("start.heading") });
+    main.append(heading, h("p", { class: "hint", text: t("start.sub") }));
+    main.append(h("div", { class: "tiles" }, SS_TILES.map((tile) =>
+      h("button", { type: "button", class: "tile" + (tile.id === "all" ? " wide" : ""), onclick: () => startWith(tile) },
+        h("span", { class: "icon", "aria-hidden": "true", text: tile.icon }),
+        h("span", { text: I.pick(tile.label) })))));
+    if (SSVoice.speechSupported() || SSVoice.recognitionSupported()) {
+      main.append(h("div", { class: "row" },
+        h("button", { type: "button", id: "speak-btn", onclick: () => { if (ui.voiceOn) SSVoice.speak(t("start.intro"), I.speechLang()); else toggleVoice(); } },
+          "🎤 " + t("start.speak"))));
+    }
+    main.append(h("section", { class: "notice", "aria-labelledby": "priv-h" },
+      h("h3", { id: "priv-h", text: t("privacy.title") }),
+      h("p", { text: t("privacy.body") })));
+    return heading;
+  }
+
+  function startWith(tile) {
+    s.tile = tile.id;
+    s.cands = E.candidates(SS_SCHEMES, tile.tag);
+    s.answers = {};
+    s.asked = [];
+    SSMetrics.begin();
+    go("question");
+  }
+
+  /* ---------- 3. adaptive questions ---------- */
+  function renderQuestion(main) {
+    const attr = E.nextAttribute(s.cands, s.answers);
+    if (attr === null) { s.screen = "results"; return renderResults(main); }
+    const q = Q[attr];
+    const box = h("section", { class: "qcard" });
+    main.append(box);
+    const heading = h("h2", null,
+      h("span", { class: "qnum", text: t("q.number", { n: s.asked.length + 1 }) }),
+      h("span", { class: "qtext", id: "qtext", text: I.pick(q.text) }));
+    box.append(heading);
+
+    const dontKnow = h("button", { type: "button", class: "ghost unk", id: "ans-unknown", onclick: () => answer(attr, E.UNKNOWN) }, "? " + t("q.dontknow"));
+    if (q.type === "yesno") {
+      box.append(h("div", { class: "answers yn" },
+        h("button", { type: "button", class: "primary", id: "ans-yes", onclick: () => answer(attr, true) }, "✓ " + t("q.yes")),
+        h("button", { type: "button", class: "primary", id: "ans-no", onclick: () => answer(attr, false) }, "✗ " + t("q.no")),
+        dontKnow));
+    } else if (q.type === "choice") {
+      box.append(h("div", { class: "answers" },
+        q.options.map((o) => h("button", { type: "button", class: "primary", id: "ans-" + o.value, onclick: () => answer(attr, o.value) }, I.pick(o.label))),
+        dontKnow));
+    } else {
+      const err = h("p", { class: "error", id: "q-err", role: "alert" });
+      const input = h("input", { type: "number", inputmode: "numeric", id: "q-input", min: q.min, max: q.max, step: "1", "aria-describedby": "q-err", autocomplete: "off" });
+      const form = h("form", { novalidate: true, onsubmit: (ev) => {
+        ev.preventDefault();
+        const raw = input.value.trim();
+        const n = Number(raw);
+        if (raw === "" || !Number.isInteger(n) || n < q.min || n > q.max) {
+          err.textContent = t("q.error", { min: q.min, max: q.max });
+          input.setAttribute("aria-invalid", "true");
+          input.focus();
+          return;
+        }
+        answer(attr, n);
+      } },
+        h("div", { class: "field" }, h("label", { for: "q-input", text: t("q.numberLabel") }), input, err),
+        h("div", { class: "row" }, h("button", { type: "submit", class: "primary" }, t("q.next")), dontKnow));
+      box.append(form);
+    }
+    const vc = voiceControls(attr);
+    if (vc) box.append(vc);
+    box.append(h("p", { class: "hint", text: t("q.hint") }));
+    main.append(h("div", { class: "row noprint" }, h("button", { type: "button", onclick: undoLast }, "← " + t("back"))));
+    return heading;
+  }
+
+  function answer(attr, value) {
+    s.answers[attr] = value;
+    s.asked.push(attr);
+    render(true);
+  }
+
+  function undoLast() {
+    if (s.asked.length === 0) { wipe(); return; }
+    const a = s.asked.pop();
+    delete s.answers[a];
+    SSMetrics.unfinish();
+    s.screen = "question";
+    render(true);
+  }
+
+  /* ---------- 4. results ---------- */
+  function schemeCard(r) {
+    const sc = r.scheme;
+    const lines = whyLines(sc, r.status);
+    const card = h("article", { class: "card" },
+      h("div", { class: "card-head" }, SSIcons.icon(sc.id, "scheme"), h("h3", { text: I.pick(sc.name) })),
+      h("p", null, h("span", { class: "badge " + r.status },
+        h("span", { "aria-hidden": "true", text: r.status === E.ELIGIBLE ? "✓" : r.status === E.NOT_ELIGIBLE ? "✗" : "?" }),
+        t("status." + r.status))),
+      h("p", { text: I.pick(sc.benefit) }),
+      h("p", { class: "hint", text: t("results.why") + ":" }),
+      h("ul", { class: "why" }, lines.map((l) => h("li", { class: l.cls, text: l.text }))));
+    if (r.status === E.NEEDS_A_QUICK_CHECK) {
+      const labels = E.blockers(sc, s.answers).map(attrLabel).join(", ");
+      card.append(h("p", { text: t("why.check", { list: labels }) }));
+    }
+    return card;
+  }
+
+  function renderResults(main) {
+    SSMetrics.end();
+    const heading = h("h2", { text: t("results.title") });
+    main.append(heading, h("p", { class: "hint", text: t("results.intro") }));
+    const all = E.results(s.cands, s.answers);
+    const rank = { ELIGIBLE: 0, NEEDS_A_QUICK_CHECK: 1 };
+    const active = all.filter((r) => r.status !== E.NOT_ELIGIBLE).sort((a, b) => rank[a.status] - rank[b.status]);
+    const rejected = all.filter((r) => r.status === E.NOT_ELIGIBLE);
+    const countOf = (st) => all.filter((r) => r.status === st).length;
+    main.append(h("div", { class: "chips" }, [E.ELIGIBLE, E.NEEDS_A_QUICK_CHECK, E.NOT_ELIGIBLE].map((st) =>
+      h("span", { class: "chip " + st }, h("strong", { text: String(countOf(st)) }), " " + t("status." + st)))));
+    active.forEach((r) => main.append(schemeCard(r)));
+    if (rejected.length) {
+      main.append(h("details", null,
+        h("summary", { text: t("results.notEligible", { n: rejected.length }) }),
+        rejected.map(schemeCard)));
+    }
+    main.append(h("div", { class: "row noprint" },
+      h("button", { type: "button", onclick: undoLast }, "← " + t("back")),
+      h("button", { type: "button", class: "primary", onclick: () => go("docs") }, t("results.next")),
+      h("button", { type: "button", onclick: () => wipe() }, t("results.restart"))));
+    return heading;
+  }
+
+  /* ---------- 5. document checklist ---------- */
+  function neededDocs() { return E.documentUnion(s.cands, s.answers); }
+  function docById(id) { return SS_DOCS.find((d) => d.id === id); }
+  function schemeNames(ids) {
+    const names = ids.map((id) => I.pick(SS_SCHEMES.find((x) => x.id === id).name));
+    return names.length > 3 ? names.slice(0, 3).join(", ") + " " + t("docs.more", { n: names.length - 3 }) : names.join(", ");
+  }
+
+  function renderDocs(main) {
+    const heading = h("h2", { text: t("docs.title") });
+    main.append(heading, h("p", { class: "hint", text: t("docs.intro") }));
+    const list = neededDocs();
+    if (!list.length) main.append(h("p", { text: t("docs.none") }));
+    const haveCount = list.filter((d) => s.docs[d.id] === true).length;
+    main.append(h("p", { id: "doc-progress-label", class: "qnum", text: t("docs.progress", { x: haveCount, y: list.length }) }),
+      h("progress", { class: "progress", max: list.length, value: haveCount, "aria-labelledby": "doc-progress-label" }));
+    list.forEach((d) => {
+      const doc = docById(d.id);
+      const state = s.docs[d.id];
+      const set = (v) => { s.docs[d.id] = v; render(false, "doc-" + d.id + (v ? "-have" : "-miss")); };
+      const card = h("article", { class: "card docrow" },
+        h("div", { class: "card-head" }, SSIcons.icon(d.id, "doc"), h("h3", { text: I.pick(doc.name) })),
+        h("p", { class: "hint", text: t("docs.for", { list: schemeNames(d.schemes) }) }),
+        h("div", { class: "row" },
+          h("button", { type: "button", id: "doc-" + d.id + "-have", "aria-pressed": String(state === true), onclick: () => set(true) }, t("docs.have")),
+          h("button", { type: "button", id: "doc-" + d.id + "-miss", "aria-pressed": String(state === false), onclick: () => set(false) }, t("docs.donthave"))));
+      if (state === false) {
+        card.append(h("div", { class: "guide" }, h("strong", { text: t("docs.where") + ": " }), I.pick(doc.where)));
+      }
+      main.append(card);
+    });
+    main.append(h("div", { class: "row noprint" },
+      h("button", { type: "button", onclick: () => go("results") }, "← " + t("back")),
+      h("button", { type: "button", class: "primary", onclick: () => go("names") }, t("docs.next"))));
+    return heading;
+  }
+
+  /* ---------- 6. mismatch pre-check ---------- */
+  function renderNames(main) {
+    const heading = h("h2", { text: t("names.title") });
+    main.append(heading, h("p", { text: t("names.intro") }));
+    NAME_KEYS.forEach((k) => {
+      main.append(h("div", { class: "field" },
+        h("label", { for: "name-" + k, text: t("names." + k) }),
+        h("input", { type: "text", id: "name-" + k, value: s.names[k], autocomplete: "off", autocapitalize: "off", spellcheck: "false",
+          oninput: (ev) => { s.names[k] = ev.target.value; } })));
+    });
+    main.append(h("div", { class: "row" }, h("button", { type: "button", class: "primary", onclick: checkNames }, t("names.check"))));
+
+    const box = h("section", { id: "names-result", tabindex: "-1", "aria-live": "polite" });
+    const r = s.nameResult;
+    if (r) {
+      if (r.filled < 2) box.append(h("p", { class: "error", text: t("names.need2") }));
+      else {
+        if (r.worst === "ok") box.append(h("p", null, h("span", { class: "badge ok", text: "✓ " + t("sev.ok") }), " " + t("names.allOk")));
+        const involved = [];
+        r.pairs.forEach((p) => {
+          box.append(h("article", { class: "card" },
+            h("p", null, h("span", { class: "badge " + p.severity, text: t("sev." + p.severity) }), " ",
+              h("strong", { text: t("names.pair", { a: t("names." + p.a), b: t("names." + p.b) }) })),
+            h("p", { text: t("class." + p.cls) }),
+            p.crossScript ? h("p", { class: "hint", text: t("class.cross") }) : null));
+          if (p.severity !== "ok") [p.a, p.b].forEach((k) => { if (involved.indexOf(k) < 0) involved.push(k); });
+        });
+        if (involved.length) {
+          box.append(h("div", { class: "notice" },
+            h("h3", { text: t("fix.title") }),
+            h("ul", null, NAME_KEYS.filter((k) => involved.indexOf(k) >= 0).map((k) => h("li", { text: t("fix." + k) }))),
+            h("p", { class: "hint", text: t("fix.hint") })));
+        }
+      }
+    }
+    main.append(box);
+    main.append(h("div", { class: "row noprint" },
+      h("button", { type: "button", onclick: () => go("docs") }, "← " + t("back")),
+      h("button", { type: "button", class: "primary", onclick: () => go("summary") }, t("names.next"))));
+    return heading;
+  }
+
+  function checkNames() {
+    s.nameResult = M.checkRecords(NAME_KEYS.map((k) => ({ key: k, name: s.names[k] })));
+    render(false, "names-result");
+  }
+
+  /* ---------- 7. summary ---------- */
+  function summarySections() {
+    const sections = [];
+    sections.push({ title: t("summary.answers"), items: s.asked.map((a) => attrLabel(a) + ": " + answerText(a, s.answers[a])) });
+    const res = E.results(s.cands, s.answers);
+    const active = res.filter((r) => r.status !== E.NOT_ELIGIBLE);
+    const items = active.map((r) => I.pick(r.scheme.name) + " – " + t("status." + r.status));
+    if (res.length > active.length) items.push(t("summary.notEligibleCount", { n: res.length - active.length }));
+    sections.push({ title: t("summary.matched"), items: items });
+    const docs = neededDocs().map((d) => {
+      const st = s.docs[d.id];
+      return I.pick(docById(d.id).name) + " – " + (st === true ? t("summary.have") : st === false ? t("summary.missing") : t("summary.notChecked"));
+    });
+    sections.push({ title: t("summary.docs"), items: docs.length ? docs : [t("summary.none")] });
+    const nr = s.nameResult;
+    const nameItems = !nr || nr.filled < 2 ? [t("summary.notChecked")]
+      : nr.pairs.map((p) => t("names.pair", { a: t("names." + p.a), b: t("names." + p.b) }) + " – " + t("sev." + p.severity) + ": " + t("class." + p.cls));
+    sections.push({ title: t("summary.names"), items: nameItems });
+    return sections;
+  }
+
+  function summaryText() {
+    const out = [t("app.title") + " – " + t("summary.title"), t("summary.generated"), ""];
+    summarySections().forEach((sec) => {
+      out.push(sec.title);
+      sec.items.forEach((i) => out.push("- " + i));
+      out.push("");
+    });
+    out.push(t("summary.official"));
+    return out.join("\n");
+  }
+
+  function copySummary() {
+    const text = summaryText();
+    const done = (ok) => { s.copyMsg = ok ? t("summary.copied") : t("summary.copyFail"); showToast(s.copyMsg); };
+    const fallback = () => {
+      const ta = h("textarea", { "aria-hidden": "true", style: "position:fixed;left:-999px" });
+      ta.value = text;
+      document.body.append(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      ta.remove();
+      done(ok);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+    else fallback();
+  }
+
+  function renderSummary(main) {
+    const heading = h("h2", { text: t("summary.title") });
+    main.append(heading);
+    const art = h("article", { class: "summary" }, h("p", { class: "hint", text: t("summary.generated") }));
+    summarySections().forEach((sec) => {
+      art.append(h("section", null, h("h3", { text: sec.title }), h("ul", null, sec.items.map((i) => h("li", { text: i })))));
+    });
+    art.append(h("p", { class: "official", text: t("summary.official") }));
+    main.append(art);
+    main.append(h("div", { class: "row noprint" },
+      h("button", { type: "button", onclick: copySummary }, t("summary.copy")),
+      h("button", { type: "button", onclick: () => window.print() }, t("summary.print"))));
+    main.append(h("div", { class: "row noprint" },
+      h("button", { type: "button", onclick: () => go("names") }, "← " + t("back"))));
+    return heading;
+  }
+
+  /* ---------- boot ---------- */
+  render(false);
+  resetIdle();
+})();
+
+</script>
+<script>
+/* If the external scripts could not be loaded (for example when the page is opened from a file manager on a phone), say so. */
+window.addEventListener("load", function () {
+  setTimeout(function () {
+    var m = document.getElementById("main");
+    if (m && !m.firstChild && !document.getElementById("boot-error")) {
+      var d = document.createElement("div");
+      d.id = "boot-error";
+      d.setAttribute("role", "alert");
+      d.style.cssText = "margin:12px;padding:12px;border:3px solid #7f1d1d;background:#fee2e2;color:#7f1d1d;font:16px/1.4 sans-serif;";
+      d.textContent = "The app files did not load. Please open seva-sahayak-single.html instead (one file, works from a file manager), or serve this folder over http.";
+      m.parentNode.insertBefore(d, m);
+    }
+  }, 1200);
+});
+</script>
+</body>
+</html>

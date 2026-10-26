@@ -66,6 +66,8 @@ js/voice.js      Web Speech API wrapper and spoken yes/no/number parsers
 js/i18n.js       t() helper
 js/metrics.js    demo metrics
 js/icons.js      inline SVG icons for schemes and documents
+js/compat.js     polyfills for older phones and a visible start-up error message
+tools/           build-single.mjs (one-file build), export-csv.mjs (review sheets)
 data/schemes.js, documents.js, questions.js, i18n.js
 tests/           Node tests
 ```
@@ -132,11 +134,20 @@ Everything else is in-memory only: no localStorage, sessionStorage, cookies or a
 
 ## Trying it on a phone
 
-1. Easiest: copy the whole `seva-sahayak` folder to the phone and open `index.html` with a file manager (Chrome may need
-   "Open with Chrome"). Everything works except voice.
-2. Or from a laptop on the same Wi-Fi: run `python -m http.server 8000` inside the folder, find the laptop's IP address,
-   and open `http://<laptop-ip>:8000` on the phone. Browsers only allow speech recognition on HTTPS or localhost,
-   so voice input will not work this way, but text-to-speech may.
+**Use `seva-sahayak-single.html`.** It is the whole app in one file (about 195 KB). Copy just that file to the phone and
+open it from a file manager (choose Chrome). This matters: when a phone opens a file from a file manager, Chrome
+gets a `content://` link and cannot load the other files in the folder, so `index.html` shows only the title and
+"Skip to main content" and nothing works. The single file does not have that problem.
+
+Rebuild it after any change: `node tools/build-single.mjs`.
+
+If something still goes wrong, the page now shows a red box with the error message instead of staying blank.
+Please send a screenshot of that box. Old browsers are handled where possible (small polyfills in `js/compat.js`,
+fallback for Unicode regular expressions), but a very old Chrome or Android WebView may still fail; updating Chrome from
+the Play Store fixes most cases.
+
+Other ways: serve the folder from a laptop (`python -m http.server 8000`) and open `http://<laptop-ip>:8000` on the
+phone over the same Wi-Fi. Browsers only allow speech recognition on HTTPS or localhost, so voice input will not work that way.
 
 ## Translation review needed
 
@@ -177,4 +188,4 @@ text in `data/schemes.js` and `data/documents.js`. Scheme names are transliterat
 - Voice quality depends on the browser and installed voices; Telugu text-to-speech is often missing.
 - Name comparison is a heuristic: it can miss real problems (a legal rule we don't know) and can't tell which record is correct.
 - Inactivity is detected by pointer, keyboard, input and touch events only.
-- Tested in a Chromium-based browser at 360 px width; other browsers and real low-end phones are untested.
+- Tested in a desktop Chromium-based browser at 360 px width. Real low-end phones are still untested: a first attempt on a Samsung Galaxy A10e from a folder opened in a file manager failed because of the `content://` limitation described above, and the one-file build was made in response; it has not yet been confirmed on that phone.

@@ -80,9 +80,14 @@
   }
 
   /* ---- Normalisation ---- */
+  // Unicode property escapes need Chrome 64+; fall back to explicit ranges on older browsers.
+  var PUNCT;
+  try { PUNCT = new RegExp("[^\\p{L}\\p{N}\\p{M}\\s]", "gu"); }
+  catch (e) { PUNCT = /[^\w\sÀ-ɏऀ-ॿఀ-౿]/g; }
+
   function normalize(name) {
     var s = String(name || "").normalize("NFKC").toLowerCase();
-    s = s.replace(/[^\p{L}\p{N}\p{M}\s]/gu, " ");
+    s = s.replace(PUNCT, " ");
     var toks = s.split(/\s+/).filter(Boolean).filter(function (t) { return HONORIFICS.indexOf(t) < 0; });
     return toks;
   }
