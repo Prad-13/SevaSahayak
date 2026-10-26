@@ -160,9 +160,10 @@ phone over the same Wi-Fi. Browsers only allow speech recognition on HTTPS or lo
 
 ## Translation review needed
 
-**The Telugu and Hindi strings are drafts and need review by a native speaker** before any real use. This covers
-`data/i18n.js`, the question texts and labels in `data/questions.js`, and the names, benefits and "where to get it"
-text in `data/schemes.js` and `data/documents.js`. Scheme names are transliterations or literal translations.
+**The Telugu text has been reviewed by the team. The Hindi strings are still drafts and need review by a native
+speaker** before any real use. This covers `data/i18n.js`, the question texts and labels in `data/questions.js`, and the
+names, benefits and "where to get it" text in `data/schemes.js` and `data/documents.js`. Scheme names are
+transliterations or literal translations. `TELUGU_REVIEW.csv` (from `node tools/export-csv.mjs`) lists every Telugu string.
 
 ## Assumptions
 
