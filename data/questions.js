@@ -28,6 +28,11 @@ var SS_QUESTIONS = {
     label: { en: "Farmer with land", te: "భూమి ఉన్న రైతు", hi: "भूमि वाला किसान" },
     text: { en: "Does your family own farmland?", te: "మీ కుటుంబానికి వ్యవసాయ భూమి ఉందా?", hi: "क्या आपके परिवार के पास खेती की ज़मीन है?" }
   },
+  tenant_farmer: {
+    type: "yesno",
+    label: { en: "Tenant farmer or sharecropper", te: "కౌలు రైతు లేదా భాగస్వామ్య సాగుదారు", hi: "बटाईदार या किराएदार किसान" },
+    text: { en: "Do you farm land that you do not own, as a tenant or sharecropper?", te: "మీకు సొంతం కాని భూమిని కౌలుకు లేదా వాటాకు సాగు చేస్తున్నారా?", hi: "क्या आप ऐसी ज़मीन पर खेती करते हैं जो आपकी नहीं है (बटाई या किराए पर)?" }
+  },
   bpl: {
     type: "yesno",
     label: { en: "BPL household", te: "బీపీఎల్ కుటుంబం", hi: "बीपीएल परिवार" },
@@ -42,11 +47,6 @@ var SS_QUESTIONS = {
     type: "yesno",
     label: { en: "Government job or pension in household", te: "ఇంట్లో ప్రభుత్వ ఉద్యోగం/పింఛను", hi: "परिवार में सरकारी नौकरी/पेंशन" },
     text: { en: "Does anyone in your household have a government job or a government pension?", te: "మీ ఇంట్లో ఎవరికైనా ప్రభుత్వ ఉద్యోగం లేదా ప్రభుత్వ పింఛను ఉందా?", hi: "क्या आपके परिवार में किसी की सरकारी नौकरी या सरकारी पेंशन है?" }
-  },
-  disability_80_plus: {
-    type: "yesno",
-    label: { en: "Disability of 80% or more", te: "80% లేదా అంతకంటే ఎక్కువ వైకల్యం", hi: "80% या अधिक दिव्यांगता" },
-    text: { en: "Do you have a disability certified at 80% or more?", te: "మీకు 80% లేదా అంతకంటే ఎక్కువ వైకల్యం ధృవీకరించబడిందా?", hi: "क्या आपकी दिव्यांगता 80% या अधिक प्रमाणित है?" }
   },
   pmjay_listed: {
     type: "yesno",

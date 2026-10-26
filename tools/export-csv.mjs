@@ -3,6 +3,7 @@
 //   TELUGU_REVIEW.csv   every Telugu string next to its English source, with an empty column for the corrected text
 import { createRequire } from "node:module";
 import { writeFileSync } from "node:fs";
+import { VERIFICATION, STATUS_LABEL, CHECK_DATE } from "./verification.mjs";
 const require = createRequire(import.meta.url);
 const SCHEMES = require("../data/schemes.js");
 const DOCS = require("../data/documents.js");
@@ -25,14 +26,26 @@ function cond(c) {
 }
 const docName = (id) => DOCS.find((d) => d.id === id).name.en;
 
+const missing = SCHEMES.filter((x) => !VERIFICATION[x.id]).map((x) => x.id);
+if (missing.length) throw new Error("No verification entry for: " + missing.join(", "));
+const counts = {};
+SCHEMES.forEach((x) => { const st = VERIFICATION[x.id].status; counts[st] = (counts[st] || 0) + 1; });
+
 writeFileSync(new URL("../SCHEMES_SAMPLE.csv", import.meta.url), csv([
-  ["#", "Scheme id", "Scheme", "Benefit (one line)", "Life-event tags", "Must ALL be true", "Must NOT be true (exclusions)", "Documents", "Status", "Checked by", "Official page checked", "Notes"],
-  ...SCHEMES.map((s, i) => [
-    i + 1, s.id, s.name.en, s.benefit.en, s.tags.join("; "),
-    s.required.map(cond).join("; "), s.exclusions.map(cond).join("; "),
-    s.documents.map(docName).join("; "), "UNVERIFIED (demo-simplified)", "", "", ""
-  ])
+  ["#", "Scheme id", "Scheme", "Benefit (one line)", "Life-event tags", "Must ALL be true", "Must NOT be true (exclusions)", "Documents",
+   "Desk-check result", "Evidence level", "What was checked, and what the app does not model", "Sources used", "Date checked", "Checked by", "Team confirmed on the official page (fill in)"],
+  ...SCHEMES.map((s, i) => {
+    const v = VERIFICATION[s.id];
+    return [
+      i + 1, s.id, s.name.en, s.benefit.en, s.tags.join("; "),
+      s.required.map(cond).join("; "), s.exclusions.map(cond).join("; "),
+      s.documents.map(docName).join("; "),
+      STATUS_LABEL[v.status], v.evidence, v.note, v.sources.join("\n"), CHECK_DATE,
+      "AI-assisted desk check of public web sources; not yet confirmed by the team", ""
+    ];
+  })
 ]));
+console.log("desk-check results:", JSON.stringify(counts));
 
 const rows = [["Where", "Key", "English", "Telugu draft", "Telugu corrected (fill this)"]];
 for (const k of Object.keys(I18N.en)) rows.push(["Screen text", k, I18N.en[k], I18N.te[k], ""]);

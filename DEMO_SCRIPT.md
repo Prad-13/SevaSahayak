@@ -14,8 +14,8 @@ Persona: widow, 54, small farm, relative's shared phone, prefers Telugu.
 2. Answer as Persona 1: woman, age **54**, widowed **Yes**, BPL **Yes**, farmland **Yes**, lives in a village **Yes**,
    no pucca house, has LPG, has a bank account, has a toilet, not a student, household income **1** lakh,
    and **No** to everything else (tax, government job, EPF, disability, business, vendor, artisan, SC/ST, OBC, minority, pregnancy, girl child, earning member died).
-   It asks 24 questions, in an order that depends on the answers.
-3. Results: **12 schemes Likely eligible**, including the **Widow pension**, **PM-KISAN**, crop insurance, rural housing,
+   It asks 23 questions, in an order that depends on the answers.
+3. Results: **12 schemes Likely eligible**, including the **Widow pension (now Pradhan Mantri Vidhawa Pension Yojana)**, **PM-KISAN**, crop insurance, rural housing,
    MGNREGA and women's self-help groups. **38 are collapsed under Not eligible**, including the Old age and Disability
    pensions. Open one card to show the "why" built from her own answers.
 4. Tap **Get my documents ready**. Mark Aadhaar and bank passbook as "I have it". Mark the death certificate as
@@ -31,9 +31,9 @@ considered, which is why the "check everything" tile exists.
 Tap **Clear my details**, switch to English, choose **Not sure, check everything**.
 
 - Answer as a 72-year-old man living in a city, not poor, no farmland, does not own a pucca house, has a bank account,
-  household income about 6 lakh, and **No** to the rest. It asks about 15 questions.
+  household income about 6 lakh, and **No** to the rest. It asks about 14 questions.
 - Result: **4 schemes Likely eligible** (**PM-JAY**, the **Senior Citizens Savings Scheme**, **PM Awas - Urban** and the **Apprenticeship scheme**); the other 46 are rejected.
-- Read the panel: **15 questions asked vs 28 in the fixed form**. Network requests: **0**.
+- Read the panel: **14 questions asked vs 28 in the fixed form**. Network requests: **0**.
 
 Then show "I don't know": restart, choose **Not sure**, age **54**, BPL **I don't know**. Schemes that depend on BPL
 (for example the Widow pension) show **Needs a quick check** with a plain-language reason naming BPL.
@@ -64,7 +64,7 @@ and the comparison happens on the device.
 
 | Metric | What to quote |
 |---|---|
-| Questions asked vs fixed form | Persona 1 ("check everything"): **24 of 28**. 72-year-old city man: **15 of 28**. Persona 1 with the spouse tile: **5 of 5**. |
+| Questions asked vs fixed form | Persona 1 ("check everything"): **23 of 28**. 72-year-old city man: **14 of 28**. Persona 1 with the spouse tile: **5 of 5**. |
 | Time to result | Read the panel (includes thinking time, so it varies by person). |
 | Rule data size | Read the panel (the 50-scheme rule data is about 80 KB); the whole app is about 200 KB. |
 | Network requests made by the app | **0** |

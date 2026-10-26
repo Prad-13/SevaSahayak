@@ -27,15 +27,24 @@ Optional: `index.html?idle=10` shortens the inactivity wipe to 10 seconds, handy
 `data/schemes.js` holds a sample of **50 national schemes** (farming, housing, women and children, work and business,
 education, money and food, older adults, disability). Run `node tools/export-csv.mjs` to produce:
 
-- `SCHEMES_SAMPLE.csv`: the 50 schemes in plain language (rules, exclusions, documents) with empty columns for
-  "Checked by", "Official page checked" and "Notes". **Every scheme is marked UNVERIFIED.**
+- `SCHEMES_SAMPLE.csv`: the 50 schemes in plain language (rules, exclusions, documents) with the result of a desk check
+  of public web sources (see below), the sources used, and an empty column for the team to confirm each row.
 - `TELUGU_REVIEW.csv`: every Telugu string next to its English source, with a column for the corrected Telugu.
 
-**Important:** the rules were drafted from general knowledge, not checked against each scheme's official page, and real
-criteria change with time and state. Income limits use `household_income_lakh` (yearly income rounded up to a whole lakh),
-so they are approximate. Before presenting any result as correct, someone must check each row against the official
-scheme page (search the scheme name on https://www.myscheme.gov.in) and fill in the CSV. State schemes are not included,
-because their names and rules change with each government; add them with the steps below once you pick a state.
+**Desk check of the rules (26 October 2026).** Each rule was compared with what could be read on the public web
+(`tools/verification.mjs` holds the notes and sources). Result: 15 consistent with the sources, 17 consistent but
+simplified (some official detail is not modelled), 12 updated because of the check, and 6 that need official
+confirmation. Changes made include: the four National Social Assistance pensions were renamed by the Union Cabinet on
+14 October 2026 (names updated; the disability pension now uses a 40% benchmark with no minimum age); PM Awas Yojana
+Urban income ceiling changed from 18 to 9 lakh; tenant farmers added to crop insurance, Kisan Credit Card and Soil
+Health Card; and age or income rules adjusted for PMMVY, DDU-GKY, Rashtriya Vayoshri, ADIP and the toilet incentive.
+
+**Limits of this check.** It was AI-assisted and many official portals could not be opened directly (certificate
+errors or blocked), so several rows rest on government-hosted documents quoted in search results or on secondary
+summaries. It is not a legal or official verification. Real criteria change with time and state, and income limits use
+`household_income_lakh` (yearly income rounded up to a whole lakh), so they are approximate. Before presenting any
+result as correct, the team should confirm each row on the official scheme page and note it in the last column of
+the CSV. State schemes are not included, because their names and rules change with each government.
 
 ## What it does
 
@@ -117,7 +126,7 @@ The panel computes everything from the current run:
   Loading the app's own local files at page start is not counted.
 
 Reference runs from the engine over the 50-scheme sample (see `tests/` and `DEMO_SCRIPT.md`), when every answer is known:
-Persona 1 with "check everything" asks 24 of 28; a 72-year-old man in a city asks 15 of 28; Persona 1 with the "Lost my
+Persona 1 with "check everything" asks 23 of 28; a 72-year-old man in a city asks 14 of 28; Persona 1 with the "Lost my
 spouse" tile asks 5 of 5 (that tile narrows to two schemes). The saving comes from rejecting schemes early, so it varies by person.
 
 ## Voice and privacy

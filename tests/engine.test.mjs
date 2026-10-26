@@ -16,7 +16,7 @@ const status = (sim, id) => sim.results.find((r) => r.scheme.id === id).status;
 const PERSONA1 = {
   gender: "female", age: 54, widowed: true, bpl: true, farmer_with_land: true,
   income_tax_payer: false, govt_service_or_pensioner: false,
-  disability_80_plus: false, pmjay_listed: false
+  disability_40_plus: false, pmjay_listed: false
 };
 
 test("Persona 1: widow pension and PM-KISAN likely eligible; old age and disability not", () => {
@@ -83,7 +83,7 @@ test("adaptive question count never exceeds the fixed form, over many profiles",
     bpl: [true, false, E.UNKNOWN],
     income_tax_payer: [true, false],
     govt_service_or_pensioner: [true, false],
-    disability_80_plus: [true, false],
+    disability_40_plus: [true, false],
     pmjay_listed: [true, false, E.UNKNOWN]
   };
   const attrs = Object.keys(vals);
@@ -211,4 +211,23 @@ test("full sample, adaptive count never exceeds the fixed form across random pro
       assert.ok(sim.count <= fixed, `${tile.id}: ${sim.count} > ${fixed}`);
     }
   }
+});
+
+/* ---- rules changed after the desk check of public sources (26 Oct 2026) ---- */
+
+test("tenant farmers and sharecroppers qualify for crop insurance, Kisan Credit Card and Soil Health Card", () => {
+  const sim = E.simulate(SCHEMES, { ...FULL_PERSONA1, farmer_with_land: false, tenant_farmer: true });
+  for (const id of ["pmfby", "kcc", "shc"]) assert.equal(status(sim, id), E.ELIGIBLE, id);
+  assert.equal(status(sim, "pm_kisan"), E.NOT_ELIGIBLE); // PM-KISAN needs land in the family's name
+});
+
+test("disability pension uses the 40% benchmark with no minimum age (Cabinet, 14 Oct 2026)", () => {
+  const sim = E.simulate(SCHEMES, { ...FULL_PERSONA1, disability_40_plus: true, age: 12, bpl: true });
+  assert.equal(status(sim, "igndps"), E.ELIGIBLE);
+});
+
+test("PM Awas Urban 2.0 income ceiling is 9 lakh", () => {
+  const base = { ...FULL_PERSONA1, rural: false, owns_pucca_house: false };
+  assert.equal(status(E.simulate(SCHEMES, { ...base, household_income_lakh: 9 }), "pmay_u"), E.ELIGIBLE);
+  assert.equal(status(E.simulate(SCHEMES, { ...base, household_income_lakh: 10 }), "pmay_u"), E.NOT_ELIGIBLE);
 });
