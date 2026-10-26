@@ -327,10 +327,19 @@
       h("button", { type: "button", class: "tile" + (tile.id === "all" ? " wide" : ""), onclick: () => startWith(tile) },
         h("span", { class: "icon", "aria-hidden": "true", text: tile.icon }),
         h("span", { text: I.pick(tile.label) })))));
-    if (SSVoice.speechSupported() || SSVoice.recognitionSupported()) {
-      main.append(h("div", { class: "row" },
-        h("button", { type: "button", id: "speak-btn", onclick: () => { if (ui.voiceOn) SSVoice.speak(t("start.intro"), I.speechLang()); else toggleVoice(); } },
-          "🎤 " + t("start.speak"))));
+    {
+      const tts = SSVoice.speechSupported(), stt = SSVoice.recognitionSupported();
+      const vbox = h("section", { class: "notice", "aria-labelledby": "vbox-h" }, h("h3", { id: "vbox-h", text: "\uD83C\uDFA4 " + t("voice.toggle") }));
+      if (tts || stt) {
+        vbox.append(h("p", { class: "hint", text: t("voice.status", { tts: tts ? t("voice.yes") : t("voice.no"), stt: stt ? t("voice.yes") : t("voice.no") }) }));
+        if (stt && window.isSecureContext === false) vbox.append(h("p", { class: "hint", text: t("voice.secure") }));
+        vbox.append(h("div", { class: "row" },
+          h("button", { type: "button", id: "speak-btn", onclick: () => { if (ui.voiceOn) SSVoice.speak(t("start.intro"), I.speechLang()); else toggleVoice(); } },
+            "\uD83C\uDFA4 " + t("start.speak"))));
+      } else {
+        vbox.append(h("p", { class: "hint", text: t("voice.none") }));
+      }
+      main.append(vbox);
     }
     main.append(h("section", { class: "notice", "aria-labelledby": "priv-h" },
       h("h3", { id: "priv-h", text: t("privacy.title") }),

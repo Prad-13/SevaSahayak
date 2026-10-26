@@ -14,7 +14,7 @@ var SS_I18N = {
     "size.1": "Text size: large. Tap to make larger",
     "size.2": "Text size: extra large. Tap to make larger",
     "size.3": "Text size: largest, simplified layout. Tap to reset",
-    "more": "More",
+    "more": "More options",
     "clear": "Clear my details",
     "clear.done": "Your details were erased.",
     "back": "Back",
@@ -142,7 +142,13 @@ var SS_I18N = {
     "voice.heard": "Heard: \"{t}\"",
     "voice.unclear": "Sorry, I did not understand. Please tap an answer.",
     "voice.error": "Voice did not work. Please tap an answer.",
-    "voice.read": "Read aloud"
+    "voice.read": "Read aloud",
+    "voice.status": "Read aloud: {tts}. Voice input: {stt}.",
+    "voice.yes": "available",
+    "voice.no": "not available",
+    "voice.none": "Voice is not available in this browser. You can still tap every answer.",
+    "voice.secure": "Voice input needs a secure page (https or localhost). Read aloud may still work."
+
   },
 
   te: {
@@ -156,7 +162,7 @@ var SS_I18N = {
     "size.1": "అక్షరాల పరిమాణం: పెద్దది. ఇంకా పెద్దది చేయడానికి నొక్కండి",
     "size.2": "అక్షరాల పరిమాణం: చాలా పెద్దది. ఇంకా పెద్దది చేయడానికి నొక్కండి",
     "size.3": "అక్షరాల పరిమాణం: అతి పెద్దది, సరళమైన లేఅవుట్. సాధారణానికి మార్చడానికి నొక్కండి",
-    "more": "మరిన్ని",
+    "more": "మరిన్ని ఎంపికలు",
     "clear": "నా వివరాలను తొలగించు",
     "clear.done": "మీ వివరాలు తొలగించబడ్డాయి.",
     "back": "వెనక్కి",
@@ -284,7 +290,12 @@ var SS_I18N = {
     "voice.heard": "విన్నది: \"{t}\"",
     "voice.unclear": "క్షమించండి, అర్థం కాలేదు. దయచేసి సమాధానాన్ని నొక్కండి.",
     "voice.error": "వాయిస్ పని చేయలేదు. దయచేసి సమాధానాన్ని నొక్కండి.",
-    "voice.read": "చదివి వినిపించు"
+    "voice.read": "చదివి వినిపించు",
+    "voice.status": "చదివి వినిపించడం: {tts}. వాయిస్ ఇన్‌పుట్: {stt}.",
+    "voice.yes": "అందుబాటులో ఉంది",
+    "voice.no": "అందుబాటులో లేదు",
+    "voice.none": "ఈ బ్రౌజర్‌లో వాయిస్ అందుబాటులో లేదు. మీరు ప్రతి సమాధానాన్ని నొక్కి ఇవ్వవచ్చు.",
+    "voice.secure": "వాయిస్ ఇన్‌పుట్‌కు సురక్షిత పేజీ (https లేదా localhost) అవసరం. చదివి వినిపించడం పని చేయవచ్చు."
   },
 
   hi: {
@@ -298,7 +309,7 @@ var SS_I18N = {
     "size.1": "अक्षर का आकार: बड़ा। और बड़ा करने के लिए दबाएँ",
     "size.2": "अक्षर का आकार: बहुत बड़ा। और बड़ा करने के लिए दबाएँ",
     "size.3": "अक्षर का आकार: सबसे बड़ा, सरल लेआउट। सामान्य करने के लिए दबाएँ",
-    "more": "और",
+    "more": "और विकल्प",
     "clear": "मेरी जानकारी मिटाएँ",
     "clear.done": "आपकी जानकारी मिटा दी गई।",
     "back": "पीछे",
@@ -426,7 +437,12 @@ var SS_I18N = {
     "voice.heard": "सुना: \"{t}\"",
     "voice.unclear": "क्षमा करें, समझ नहीं आया। कृपया कोई जवाब दबाएँ।",
     "voice.error": "आवाज़ काम नहीं की। कृपया कोई जवाब दबाएँ।",
-    "voice.read": "पढ़कर सुनाएँ"
+    "voice.read": "पढ़कर सुनाएँ",
+    "voice.status": "पढ़कर सुनाना: {tts}। आवाज़ से जवाब: {stt}।",
+    "voice.yes": "उपलब्ध",
+    "voice.no": "उपलब्ध नहीं",
+    "voice.none": "इस ब्राउज़र में आवाज़ उपलब्ध नहीं है। आप हर जवाब को दबाकर दे सकते हैं।",
+    "voice.secure": "आवाज़ से जवाब के लिए सुरक्षित पेज (https या localhost) चाहिए। पढ़कर सुनाना फिर भी चल सकता है।"
   }
 };
 if (typeof module !== "undefined" && module.exports) module.exports = SS_I18N;
